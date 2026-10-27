@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+.env.*
+*.log
+.vite/
+test-results/
+playwright-report/
+.DS_Store
+Thumbs.db
+.text-check/
+
+# Never commit a real return file or a real payroll: the owner's samples stay in
+# Payroll\MRA_SAMPLES, outside every repository. Tests use fake data only.
+MRA_SAMPLES/
+*.xlsx

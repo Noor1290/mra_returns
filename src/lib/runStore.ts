@@ -1,0 +1,91 @@
+// Saved payroll runs from the dashboard: "mra-batch" (docs/INTEGRATION.md in the payroll_hub
+// repo). Read only: nothing is ever saved through it. The dashboard lists only the companies
+// where the user is an admin, asks its user ONCE (password gate open) for the month and the
+// companies, and then answers one company at a time with its saved run of that month. The rows
+// are per-employee data: memory only, never stored.
+
+import { z } from 'zod'
+import { ask, failure, normaliseBrn, type Failure, type HubPort } from './hubWire'
+
+export const HUB_APP_ID = 'mra-returns'
+export const MRA_BATCH = 'mra-batch'
+/** The most companies one ask may name; the dashboard has the same limit. */
+export const ASK_MAX_COMPANIES = 200
+/** A company's run can be large: the app gives the dashboard this long to answer for one company. */
+const LOAD_TIMEOUT_MS = 60_000
+
+const brn = z.string().min(1).max(50)
+const companyName = z.string().max(120)
+const month = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/)
+
+const companySchema = z.object({ brn, name: companyName, selected: z.boolean() })
+export type BatchCompany = z.infer<typeof companySchema>
+
+export type CompaniesAnswer =
+  | { ok: true; companies: BatchCompany[]; selectedBrn: string; selectedName: string }
+  | { ok: false; failure: Failure }
+
+/** The companies where the user is an admin, the one selected in the dashboard first. Names only. */
+export async function listCompanies(port: HubPort): Promise<CompaniesAnswer> {
+  const answer = await ask(port, MRA_BATCH, { action: 'companies' }, null, companySchema, { maxRows: 5_000 })
+  if (!answer.ok) return answer
+  const selected = answer.rows.filter((row) => row.selected)
+  // The dashboard names the selected company in meta; it must be the one marked in the rows.
+  if (selected.length > 1 || (selected.length === 1 && normaliseBrn(selected[0].brn) !== normaliseBrn(answer.company.brn))) {
+    return { ok: false, failure: failure('bad-answer') }
+  }
+  return { ok: true, companies: answer.rows, selectedBrn: answer.company.brn, selectedName: answer.company.name }
+}
+
+const grantedSchema = z.object({ brn, name: companyName })
+export type Allowed = { ok: true; companies: z.infer<typeof grantedSchema>[] } | { ok: false; failure: Failure }
+
+/**
+ * Asks the dashboard's user, once, to allow that month for those companies (one or several).
+ * Waits as long as the dashboard asks its user (up to two minutes).
+ */
+export async function askForCompanies(port: HubPort, selectedBrn: string, period: string, chosen: readonly string[]): Promise<Allowed> {
+  if (chosen.length === 0 || chosen.length > ASK_MAX_COMPANIES) return { ok: false, failure: failure('invalid') }
+  const answer = await ask(port, MRA_BATCH, { action: 'ask', period, companies: [...chosen] }, selectedBrn, grantedSchema, {
+    timeoutMs: null,
+    maxRows: ASK_MAX_COMPANIES,
+  })
+  if (!answer.ok) return answer
+  if (answer.period !== period) return { ok: false, failure: failure('bad-answer') }
+  return { ok: true, companies: answer.rows }
+}
+
+/** One employee's row of a saved run: the keys of the payroll export, exactly as stored. */
+export type RunRow = Record<string, unknown>
+
+const runSchema = z
+  .object({
+    brn,
+    name: companyName,
+    address: z.string().max(500).nullable(),
+    period: month,
+    run: z.boolean(),
+    employees: z.array(z.record(z.string(), z.unknown())).max(10_000),
+  })
+  // A month that was never sent to the dashboard has no employees.
+  .refine((row) => row.run || row.employees.length === 0)
+
+/** One company's saved run of a month, as the dashboard sends it. */
+export type SavedRun = z.infer<typeof runSchema>
+
+export type Loaded = { ok: true; run: SavedRun } | { ok: false; failure: Failure }
+
+/** One company's saved run of the month. Only after the user allowed it in the dashboard. */
+export async function loadRun(port: HubPort, selectedBrn: string, period: string, companyBrn: string): Promise<Loaded> {
+  const answer = await ask(port, MRA_BATCH, { action: 'load', period, company_brn: companyBrn }, selectedBrn, runSchema, {
+    maxRows: 1,
+    timeoutMs: LOAD_TIMEOUT_MS,
+  })
+  if (!answer.ok) return answer
+  const [run] = answer.rows
+  // One row, about the company asked for and the month asked for: anything else is not used.
+  if (answer.rows.length !== 1 || normaliseBrn(run.brn) !== normaliseBrn(companyBrn) || run.period !== period) {
+    return { ok: false, failure: failure('bad-answer') }
+  }
+  return { ok: true, run }
+}

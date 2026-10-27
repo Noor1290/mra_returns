@@ -1,0 +1,168 @@
+{
+  "texts": [
+    {
+      "text": "text: MRA Returns",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own"
+    },
+    {
+      "text": "text: CSG (PACO) and PRGF return files",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own"
+    },
+    {
+      "text": "text: Light theme",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own"
+    },
+    {
+      "text": "text: Open this app from the dashboard",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own"
+    },
+    {
+      "text": "text: MRA Returns makes the return files from the payroll runs saved in the Payroll Hub dashboard. Opened on its own, it can only show fake sample data.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own"
+    },
+    {
+      "text": "text: Try with fake sample data",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own"
+    },
+    {
+      "text": "text: ABC Co Ltd, August 2026",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: Fake sample data",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: 3 employees in the saved run.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: Close the sample data",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: Employees in the saved run",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: Employee ID",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: Surname",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: Other names",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: Gross Pay",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: Dark theme",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: on its own: light theme"
+    },
+    {
+      "text": "text: Dashboard connected",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: connected"
+    },
+    {
+      "text": "text: Saved payroll run",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: connected"
+    },
+    {
+      "text": "text: The return files are made from the payroll run saved in the dashboard for the month. The dashboard asks you before it sends it.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: connected"
+    },
+    {
+      "text": "text: Company",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: connected"
+    },
+    {
+      "text": "text: ABC Co Ltd, BRN C1234567",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: connected"
+    },
+    {
+      "text": "text: Month",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: connected"
+    },
+    {
+      "text": "text: Get the saved run",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: connected"
+    },
+    {
+      "text": "text: Waiting for the dashboard. Allow it there when it asks.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: waiting for the question"
+    },
+    {
+      "text": "text: July 2026 has not been sent to the dashboard for ABC Co Ltd.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: month not sent"
+    },
+    {
+      "text": "text: Open Payroll System, choose July 2026 and use Send to dashboard. Then get it here.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: month not sent"
+    },
+    {
+      "text": "text: The request was declined in the dashboard",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: refused (deny)"
+    },
+    {
+      "text": "text: Nothing was sent to this app. Try again when you are ready, and allow it in the dashboard.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: refused (deny)"
+    },
+    {
+      "text": "text: The dashboard said: The request was declined in the dashboard.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: refused (deny)"
+    },
+    {
+      "text": "text: The dashboard is locked",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: refused (locked)"
+    },
+    {
+      "text": "text: Confirm your password in the dashboard to unlock it, then try again.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: refused (locked)"
+    },
+    {
+      "text": "text: The dashboard said: The dashboard is locked.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: refused (locked)"
+    },
+    {
+      "text": "text: Nobody answered the question in the dashboard",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: refused (timeout)"
+    },
+    {
+      "text": "text: The dashboard asks before it sends payroll figures. Try again, then allow it there.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: refused (timeout)"
+    },
+    {
+      "text": "text: The dashboard said: Nobody answered in the dashboard.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: refused (timeout)"
+    },
+    {
+      "text": "text: Only an admin of XYZ Trading Ltd can make its MRA returns.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: a member"
+    },
+    {
+      "text": "text: Ask an admin of the company, or select a company you are an admin of in the dashboard.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: a member"
+    },
+    {
+      "text": "text: The dashboard could not do this",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: companies not available"
+    },
+    {
+      "text": "text: Check that you are signed in to the dashboard with a company selected, and that it is online.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: companies not available"
+    },
+    {
+      "text": "text: The dashboard said: The dashboard is not connected to a database.",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: companies not available"
+    },
+    {
+      "text": "text: Try again",
+      "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: companies not available"
+    }
+  ]
+}

@@ -146,7 +146,7 @@ function CalcEditor({ body, cell, terms, onChange, keys, disabled }: { body: Tem
             {term.of.type === 'cell' && (
               <label className="field">
                 <span className="field-label">Cell</span>
-                <select className="input input-sm" value={term.of.id} disabled={disabled} onChange={(event) => set(index, { of: { type: 'cell', id: event.target.value } })}>
+                <select className="input input-sm" data-values value={term.of.id} disabled={disabled} onChange={(event) => set(index, { of: { type: 'cell', id: event.target.value } })}>
                   {!others.some((found) => found.cell.id === (term.of as { id: string }).id) && <option value={term.of.id}>This cell</option>}
                   {others.map((found) => (
                     <option key={found.cell.id} value={found.cell.id}>
@@ -297,10 +297,14 @@ export function CellEditor(props: CellEditorProps) {
         <h3 id="cell-title" className="m-0 text-base font-semibold">
           Cell {cellName(row, column)}
         </h3>
-        {heading && <p className="m-0 text-sm text-muted">{heading}</p>}
+        {heading && (
+          <p className="m-0 text-sm text-muted" data-values>
+            {heading}
+          </p>
+        )}
         {uploaded !== null && uploaded !== '' && (
           <p className="m-0 text-sm text-muted">
-            In the uploaded file: <span className="num">{uploaded}</span>
+            In the uploaded file: <span className="num" data-values>{uploaded}</span>
           </p>
         )}
       </div>
@@ -408,7 +412,7 @@ export function CellEditor(props: CellEditorProps) {
         <span className="field-label">In the file</span>
         {preview ? (
           <>
-            <code className="num text-sm">{preview.text === '' ? '(empty)' : preview.text}</code>
+            <code className="num text-sm" data-values>{preview.text === '' ? '(empty)' : preview.text}</code>
             <span className="field-hint">{preview.who}</span>
             {preview.problem && <span className="field-error">{preview.problem}</span>}
           </>

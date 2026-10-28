@@ -6,7 +6,8 @@
 //
 // It drives the built app on its own (scripts/lib/preview-server.mjs) and inside the fake
 // dashboard (scripts/lib/embedded.mjs), and records text on screen, screen-reader labels, titles
-// and placeholders. Values from the (fake) data are left out: table cells and the list of months.
+// and placeholders, and the choices in lists. Values from the (fake) data are left out: table cells
+// and anything marked data-values (the months, the template's own cells and headings, file names).
 // Run after `npm run build`.
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
@@ -14,6 +15,7 @@ import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 import { embeddedContext, openEmbedded } from './lib/embedded.mjs'
 import { startPreview } from './lib/preview-server.mjs'
+import { walkTemplates } from './lib/template-walk.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const approvedFile = resolve(root, 'tests/textCheck/approved.json')
@@ -25,10 +27,12 @@ function collect() {
   const out = []
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT)
   for (let el = walker.currentNode; el; el = walker.nextNode()) {
-    if (['SCRIPT', 'STYLE', 'TD', 'OPTION'].includes(el.tagName)) continue
-    if (el.closest('td, option')) continue
+    if (['SCRIPT', 'STYLE'].includes(el.tagName)) continue
+    if (el.closest('datalist, [data-values]')) continue
+    // Table cells hold data; a list to choose from inside one is wording.
+    if (el.closest('td') && !el.closest('select')) continue
     const style = getComputedStyle(el)
-    if (style.display === 'none' || style.visibility === 'hidden') continue
+    if (el.tagName !== 'OPTION' && style.display === 'none' || style.visibility === 'hidden') continue
     // Text written directly inside this element (pieces joined, so "Only an admin of " + name is one string).
     const own = squash([...el.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE).map((n) => n.textContent).join(''))
     if (own) out.push(`text: ${own}`)
@@ -59,6 +63,7 @@ try {
   await record('on its own: fake sample', page)
   await page.getByRole('button', { name: 'Light theme' }).click()
   await record('on its own: light theme', page)
+  await walkTemplates(page, (name) => record(`on its own: ${name}`, page))
   await context.close()
 
   // Inside the dashboard.

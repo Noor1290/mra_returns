@@ -3,11 +3,13 @@
 //   - the keyboard focus ring is a visible 2px accent outline;
 //   - text contrast is at least WCAG AA (4.5:1, or 3:1 for large text);
 //   - reduced motion switches every animation and transition off.
+// The files, templates and dialogs are walked through with scripts/lib/template-walk.mjs.
 // The screens inside the dashboard are checked for names and contrast by check-bridge.mjs.
 // Run after `npm run build`: node scripts/check-a11y.mjs
 import { chromium } from 'playwright'
 import { lowContrast, unnamedControls } from './lib/a11y-page.mjs'
 import { startPreview } from './lib/preview-server.mjs'
+import { walkTemplates } from './lib/template-walk.mjs'
 
 const problems = []
 const fail = (theme, text) => problems.push(`[${theme}] ${text}`)
@@ -66,6 +68,11 @@ try {
     // Let the 150ms colour transitions finish, however busy the machine is.
     await page.waitForTimeout(400)
     await checkScreen(page, `${theme} switched`, 'fake sample')
+    // Every screen and dialog of the files and templates.
+    await walkTemplates(page, async (name) => {
+      await page.waitForTimeout(400)
+      await checkScreen(page, `${theme} switched`, name)
+    })
     await context.close()
   }
 

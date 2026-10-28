@@ -28,7 +28,7 @@ export function TemplateGrid({
   const columns = Array.from({ length: body.width }, (_, index) => index)
   return (
     <div className="table-scroll card" style={{ maxHeight: 460 }}>
-      <table className="table grid-table" data-testid="template-grid">
+      <table className="table grid-table" data-testid="template-grid" data-values>
         <caption className="sr-only">The template, row by row</caption>
         <thead>
           <tr>

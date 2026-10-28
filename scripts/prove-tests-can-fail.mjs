@@ -24,6 +24,23 @@ const changes = [
   ['The default month is this month, not the last', 'src/lib/dates.ts', 'return recentMonths(now, 2)[1]', 'return recentMonths(now, 2)[0]'],
   ['The copied bridge trusts another origin', 'src/payrollHubBridge.js', 'var HUB_ORIGIN = "https://noor1290.github.io";', 'var HUB_ORIGIN = "http://localhost:5176";'],
   ['The fake sample gets an ID that looks real', 'src/data/demoRun.ts', "employee('X0000000000001'", "employee('A1234567890123'"],
+  // Stage 1: the return files.
+  ['Rounding goes half down, not half up', 'src/lib/decimal.ts', 'if ((size % drop) * 2n >= drop) kept += 1n', 'if ((size % drop) * 2n > drop) kept += 1n'],
+  ['"Round this part first" is ignored (the total is rounded instead)', 'src/lib/evaluate.ts', "        value = roundHalfUp(value, 0)\n        roundsWhole = true", '        roundsWhole = true'],
+  ['A part to subtract is added', 'src/lib/evaluate.ts', 'total = term.sign === 1 ? add(total, value) : subtract(total, value)', 'total = add(total, value)'],
+  ['A rate is not applied', 'src/lib/evaluate.ts', '        value = product\n', ''],
+  ["This company's own value is ignored", 'src/lib/evaluate.ts', 'const text = own ?? source.value', 'const text = source.value'],
+  ['A mapping is case- and space-sensitive', 'src/lib/evaluate.ts', "const loose = (text: string) => text.trim().replace(/\\s+/g, ' ').toLowerCase()", 'const loose = (text: string) => text'],
+  ['Employees with no pay are not left out', 'src/lib/evaluate.ts', "  if (value === 'none') return true\n  return value !== null && isZero(value)", '  return false'],
+  ['YY is written with four digits', 'src/lib/formats.ts', 'out += two(date.year % 100)', 'out += String(date.year)'],
+  ['"In capitals" is ignored', 'src/lib/formats.ts', 'if (format.capitals) text = text.toUpperCase()', ''],
+  ['Leading zeros are not added', 'src/lib/formats.ts', "digits.padStart(format.width, '0')", 'digits'],
+  ['Lines end in LF instead of CRLF', 'src/lib/csvFile.ts', "settings.lineEnding === 'crlf' ? '\\r\\n' : '\\n'", "'\\n'"],
+  ['Short lines are not padded to the full width', 'src/lib/csvFile.ts', "while (row.length < width) row.push('')", ''],
+  ['"Never" quotes a field anyway', 'src/lib/csvFile.ts', "if (quotes === 'always' || (quotes === 'needed' && needs))", 'if (true)'],
+  ['Windows-1252 is written as UTF-8', 'src/lib/csvFile.ts', "  if (encoding !== 'windows-1252') {\n", '  if (true) {\n'],
+  ['Characters Windows forbids stay in a file name', 'src/lib/fileName.ts', 'name = [...name].filter(allowed).join(\'\')', 'name = [...name].join(\'\')'],
+  ['Example rows of an upload are saved', 'src/lib/upload.ts', "    if (kind === 'example') return\n", ''],
 ]
 
 function runTests() {

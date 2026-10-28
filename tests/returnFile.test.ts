@@ -5,6 +5,7 @@
 // then add". And the calculation rules themselves. Fake values only.
 import { describe, expect, it } from 'vitest'
 import { standardTemplate } from '../src/data/mraLayouts'
+import { writeCsv } from '../src/lib/csvFile'
 import { toText } from '../src/lib/decimal'
 import { buildFile, templateProblems, type FileContext } from '../src/lib/evaluate'
 import { makeReturnFile } from '../src/lib/returnFile'
@@ -75,6 +76,11 @@ describe('file settings', () => {
     expect(utf8.bytes[0]).toBe(0x4d)
     const bom = makeReturnFile(withSettings({ encoding: 'utf-8-bom' }), NO_OWN_VALUES, ABC, '2026-08', FAKE_EMPLOYEES)
     expect(Array.from(bom.bytes.subarray(0, 3))).toEqual([0xef, 0xbb, 0xbf])
+  })
+
+  it('pads a short line with empty fields to the full width', () => {
+    const file = writeCsv([['MRA', 'PACO', 'V1.0'], ['001234']], 5, csg().settings)
+    expect(new TextDecoder('latin1').decode(file.bytes)).toBe('MRA,PACO,V1.0,,\r\n001234,,,,\r\n')
   })
 
   it('without padding, ends each line at its last field that is not empty', () => {

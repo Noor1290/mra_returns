@@ -598,6 +598,10 @@ input[type='checkbox'] {
   background: color-mix(in srgb, var(--accent) 12%, transparent);
   box-shadow: inset 0 0 0 2px var(--accent);
 }
+/* The tint lowers the contrast of muted text below 4.5:1 in the light theme. */
+.grid-selected .grid-value {
+  color: var(--fg);
+}
 .file-preview {
   margin: 0;
   max-height: 320px;

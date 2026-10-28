@@ -9,6 +9,8 @@ A frontend-only app (React + Vite + TypeScript + Tailwind, GitHub Pages at https
 - Payroll data and the generated files live in memory only. Never in localStorage, sessionStorage, IndexedDB, URLs, logs or analytics. The files are never stored anywhere.
 - The repo is PUBLIC: fake data only (ABC Co Ltd, invented names and IDs) in tests, samples, screenshots and docs. The owner's real samples stay in `Payroll\MRA_SAMPLES`, outside every repo.
 - No requests to outside servers at runtime: fonts, icons and libraries are bundled. No eval, no new Function.
+- Calculations in templates are data (`src/lib/template.ts`), worked out with exact decimals (`src/lib/decimal.ts`). Never floating point for money, never eval.
+- The output must stay byte for byte the MRA format: `tests/samples.test.ts` (owner's samples, local only) and `tests/returnFile.test.ts` (fake company) must pass.
 - Every new on-screen text is shown to the owner before it goes into tests/textCheck/approved.json.
 
 ## Working agreements
@@ -19,4 +21,4 @@ A frontend-only app (React + Vite + TypeScript + Tailwind, GitHub Pages at https
 - Never push or merge; the owner does that.
 
 ## Status
-- [x] Stage 0  - [ ] Stage 1  - [ ] Stage 2
+- [x] Stage 0  - [x] Stage 1  - [ ] Stage 2

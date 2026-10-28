@@ -466,9 +466,9 @@ export function TemplatesPanel({
           onClose={() => setOpen(null)}
           onDone={(names) => {
             setOpen(null)
-            setStatus(names.length > 0 ? `Now also used by ${names.join(', ')}.` : null)
-            void openTemplate(editing.id)
             setReload((n) => n + 1)
+            // Reopened first: opening clears the message, which must stay.
+            void openTemplate(editing.id).then(() => setStatus(names.length > 0 ? `Now also used by ${names.join(', ')}.` : null))
           }}
         />
       )}
@@ -536,7 +536,7 @@ function UploadRows({
           <tbody>
             {upload.upload.grid.map((cells, row) => (
               <tr key={row}>
-                <th scope="row" className="num">
+                <th scope="row" className="num" data-values>
                   {row + 1}
                 </th>
                 <td>
@@ -614,7 +614,7 @@ function HistoryDialog({ store, template, onClose, onRestore }: { store: Templat
             <li key={row.revision} className="flex flex-wrap items-center gap-3 border-b border-line pb-2">
               <span className="font-semibold">Version {row.revision}</span>
               <span className="text-sm text-muted">
-                {when(row.saved_at)}, {row.saved_by_you ? 'by you' : 'by another admin'}
+                <span data-values>{when(row.saved_at)}</span>, {row.saved_by_you ? 'by you' : 'by another admin'}
               </span>
               {row.revision === template.revision ? (
                 <span className="badge tone-accent">In use now</span>

@@ -163,6 +163,694 @@
     {
       "text": "text: Try again",
       "why": "approved by the owner 27 Oct 2026 (Stage 0); seen on: dashboard: companies not available"
+    },
+    {
+      "text": "aria-label: MRA Returns",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: Make the files",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: Templates",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: Return files for August 2026",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: Upload each file to the MRA portal exactly as it is downloaded. Do not open it in Excel and save it again first: Excel changes dates and drops leading zeros.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: Loading",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: MRA CSG (PACO)",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: files"
+    },
+    {
+      "text": "text: 3 employees in the file.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: files"
+    },
+    {
+      "text": "text: 2 values end in exactly .50 before rounding",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: files"
+    },
+    {
+      "text": "text: The saved run keeps 2 decimals, so a figure that ends in .50 may itself have been rounded up from just under .50. The whole-rupee amount can then be 1 more than from the full figure. Check these in Payroll System if it matters.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: files"
+    },
+    {
+      "text": "text: DOE JANE (row 1): CSG is 562.5 in the saved run (cell J5).",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: files"
+    },
+    {
+      "text": "text: DOE JANE (row 1): Employee NSF is 187.5 in the saved run (cell K5).",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: files"
+    },
+    {
+      "text": "text: MRA PRGF",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: files"
+    },
+    {
+      "text": "text: Download 2 files",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: files"
+    },
+    {
+      "text": "text: Download the file",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: files: one ticked"
+    },
+    {
+      "text": "text: Downloaded:",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: files: downloaded"
+    },
+    {
+      "text": "text: Upload a template",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: templates"
+    },
+    {
+      "text": "text: Upload the CSV file from the MRA portal, or an Excel copy of it, once. Then say what goes in each cell. Templates are kept in the dashboard, so they work on any laptop.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: templates"
+    },
+    {
+      "text": "aria-label: Templates of this company",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: templates"
+    },
+    {
+      "text": "text: Version 1",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: templates"
+    },
+    {
+      "text": "text: Template name",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Save",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Undo the changes",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: History",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Also use it in",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Remove from this company",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Click a cell of the employer or employee row, or a column letter, to say what goes in it.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: File settings",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Encoding",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Windows-1252 (as the MRA files)",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: UTF-8",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: UTF-8 with a byte-order mark",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Line endings",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: CRLF (Windows, as the MRA files)",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: LF",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Separator",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Comma",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Semicolon",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Quotes",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Never (as the MRA files)",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: When needed",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Always",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Pad every line to the full width (19 fields)",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: File name",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Pieces: {MONTH} {MM} {YYYY} {YY} {COMPANY} {BRN}. Characters Windows does not allow in a file name are left out.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: File name in capitals",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: For example:",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Leave out employees with no pay that month",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: No pay means this column is 0 or empty",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Preview of the file",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: With the saved run of ABC Co Ltd for that month: 3 employees in the file.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Cell J5",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: What goes in it",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Empty",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Fixed value",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Company detail",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Identity field",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Payroll column",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: The month",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: A small calculation",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Mapping from text",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Parts, worked out in order",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Part 1",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Add",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Subtract",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: What",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Another cell",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: A number",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Column",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Multiplied by (optional)",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: 0.045, or 4.5%",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Round this part first",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: No",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: To whole rupees, half up",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: To 2 decimals, half up",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Remove",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "aria-label: Remove part 1",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Part 2",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "aria-label: Remove part 2",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Add a part",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: How it is written",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Written as",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Text",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Number",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Date",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Rounded to",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Whole rupees, half up",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: 2 decimals, half up",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Width with leading zeros",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: 0 for none",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: In the file",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: For DOE JANE (row 1), ABC Co Ltd.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Clear this cell",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Save or undo the changes before opening another template.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation of another cell"
+    },
+    {
+      "text": "text: Unsaved changes",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation of another cell"
+    },
+    {
+      "text": "text: Cell",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: a calculation of another cell"
+    },
+    {
+      "text": "text: Get a saved run under Make the files to see this cell with real figures.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: empty"
+    },
+    {
+      "text": "text: Value for all companies",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: fixed"
+    },
+    {
+      "text": "text: ABC Co Ltd has its own value",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: fixed"
+    },
+    {
+      "text": "text: The value for all companies applies here.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: fixed"
+    },
+    {
+      "text": "text: All companies",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: fixed"
+    },
+    {
+      "text": "text: In capitals",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: fixed"
+    },
+    {
+      "text": "text: Trim spaces and collapse double spaces",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: fixed"
+    },
+    {
+      "text": "text: Detail",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: company"
+    },
+    {
+      "text": "text: Company name",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: company"
+    },
+    {
+      "text": "text: BRN",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: company"
+    },
+    {
+      "text": "text: Address",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: company"
+    },
+    {
+      "text": "text: Employer Registration Number (ERN)",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: company"
+    },
+    {
+      "text": "text: Telephone number",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: company"
+    },
+    {
+      "text": "text: Mobile number",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: company"
+    },
+    {
+      "text": "text: Name of declarant",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: company"
+    },
+    {
+      "text": "text: Your email",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: company"
+    },
+    {
+      "text": "text: The month of the return. Choose how it is written below.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: month"
+    },
+    {
+      "text": "text: Pattern",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: month"
+    },
+    {
+      "text": "text: YYYY, YY, MM, DD and MONTH are replaced; anything else is written as it is. 1 August 2026 is written 2608.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: month"
+    },
+    {
+      "text": "text: Text from",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: map"
+    },
+    {
+      "text": "text: Capitals and spaces are ignored",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: map"
+    },
+    {
+      "text": "text: When it is",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: map"
+    },
+    {
+      "text": "text: Write",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: map"
+    },
+    {
+      "text": "aria-label: Remove mapping 1",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: map"
+    },
+    {
+      "text": "aria-label: Remove mapping 2",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: map"
+    },
+    {
+      "text": "text: Add a mapping",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: map"
+    },
+    {
+      "text": "text: Anything else becomes",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: map"
+    },
+    {
+      "text": "text: Value for ABC Co Ltd only",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: fixed, own value"
+    },
+    {
+      "text": "text: This company's own value applies here.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: fixed, own value"
+    },
+    {
+      "text": "text: ABC Co Ltd only",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: fixed, own value"
+    },
+    {
+      "text": "text: Your own email for the returns, from the Company profile. Use a fixed value for another address.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: company email"
+    },
+    {
+      "text": "text: This cell has a value that is not a date, so it is left empty.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: cell: written as date"
+    },
+    {
+      "text": "text: Saved in the dashboard.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: saved"
+    },
+    {
+      "text": "text: MRA CSG (PACO) copy",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: history"
+    },
+    {
+      "text": "text: Version 2",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: history"
+    },
+    {
+      "text": "text: History of MRA CSG (PACO) copy",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: history"
+    },
+    {
+      "text": "text: Every saved version is kept. Restoring one puts it in the editor; saving it makes it the newest version, and nothing earlier is changed.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: history"
+    },
+    {
+      "text": "text: , by you",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: history"
+    },
+    {
+      "text": "text: In use now",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: history"
+    },
+    {
+      "text": "text: Restore this version",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: history"
+    },
+    {
+      "text": "text: Close",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: history"
+    },
+    {
+      "text": "text: Version 1 is in the editor. Save to make it the newest version.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: version restored"
+    },
+    {
+      "text": "text: Use MRA CSG (PACO) copy in other companies",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: also use it in"
+    },
+    {
+      "text": "text: The template is then shared: a change reaches every company using it, and only an admin of all of them can make one. Each company keeps its own values.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: also use it in"
+    },
+    {
+      "text": "text: DEF Ltd",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: also use it in"
+    },
+    {
+      "text": "text: Cancel",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: also use it in"
+    },
+    {
+      "text": "text: Use it in the ticked companies",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: also use it in"
+    },
+    {
+      "text": "text: Used by 2 companies",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: used by 2 companies"
+    },
+    {
+      "text": "text: Now also used by DEF Ltd.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: used by 2 companies"
+    },
+    {
+      "text": "text: Remove MRA CSG (PACO) copy from ABC Co Ltd?",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: remove, others keep it"
+    },
+    {
+      "text": "text: The template stays for the 1 other company using it. ABC Co Ltd's own values for it are deleted.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: remove, others keep it"
+    },
+    {
+      "text": "text: Remove from ABC Co Ltd",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: remove, others keep it"
+    },
+    {
+      "text": "text: Every company where you are an admin already uses it.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: dialog: also use it in, none left"
+    },
+    {
+      "text": "text: MRA PRGF was deleted, with its history.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: template: deleted"
+    },
+    {
+      "text": "text: This file could not be read",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: not readable"
+    },
+    {
+      "text": "text: This is not an Excel (.xlsx) file this app can read. Upload the .csv file from the MRA portal, or an Excel (.xlsx) copy of it.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: not readable"
+    },
+    {
+      "text": "text: The rows of the uploaded file",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "text: Say what each row is. Copied rows are written exactly as uploaded. The employer row is written once; the employee row once for each employee paid that month. Example rows are left out and not saved.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "text: Row",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "text: What it is",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "text: Starts with",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "aria-label: What row 1 is",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "text: Copied exactly",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "text: Employer row",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "text: Employee row",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "text: Example (not saved)",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "aria-label: What row 2 is",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "aria-label: What row 3 is",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "aria-label: What row 4 is",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "aria-label: What row 5 is",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "aria-label: What row 6 is",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "text: Set up the cells",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: the rows"
+    },
+    {
+      "text": "text: The text of the employer and employee rows of the upload is shown while you set up the cells. It is not saved.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: setting up the cells"
+    },
+    {
+      "text": "text: Cell A3",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: setting up the cells"
+    },
+    {
+      "text": "text: In the uploaded file:",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: upload: setting up the cells"
+    },
+    {
+      "text": "text: This company has no templates yet. Make one under Templates first.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: dashboard: saved run"
     }
   ]
 }

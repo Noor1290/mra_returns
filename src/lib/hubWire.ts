@@ -17,7 +17,7 @@ export interface HubPort {
 }
 
 /** The refusal codes the dashboard uses for this app's requests. */
-export const REFUSAL_CODES = ['forbidden', 'wrong-company', 'invalid', 'unavailable', 'locked', 'denied', 'timeout'] as const
+export const REFUSAL_CODES = ['forbidden', 'wrong-company', 'invalid', 'unavailable', 'locked', 'denied', 'timeout', 'stale', 'not-found', 'too-large'] as const
 export type RefusalCode = (typeof REFUSAL_CODES)[number]
 
 export type FailureKind =
@@ -30,6 +30,8 @@ export type FailureKind =
   | 'other-company'
   /** The answer does not say which company it is about. */
   | 'no-company-brn'
+  /** A save got no answer in time: it may or may not have been stored. */
+  | 'unconfirmed'
 
 export interface Failure {
   kind: FailureKind
@@ -86,6 +88,22 @@ const TEXT: Record<FailureKind, { title: string; detail: string }> = {
   'other-company': {
     title: 'The dashboard answered for another company',
     detail: 'The answer was not used. Try again.',
+  },
+  stale: {
+    title: 'Someone else saved this since you opened it',
+    detail: 'Nothing was overwritten. Reload to see what is saved now, then make your change again.',
+  },
+  'not-found': {
+    title: 'The dashboard does not have that template for this company',
+    detail: 'It may have been removed from this company. Reload the list.',
+  },
+  'too-large': {
+    title: 'It is larger than the dashboard accepts',
+    detail: 'Leave out rows or columns the file does not need, then save again.',
+  },
+  unconfirmed: {
+    title: 'The dashboard could not confirm the save',
+    detail: 'It may have been saved. Reload to see whether it was before saving again.',
   },
   'no-company-brn': {
     title: "The dashboard's company has no BRN",
@@ -201,6 +219,33 @@ export async function ask<T>(
     company: { name: answer.data.meta?.label?.trim() ?? '', brn },
     period: answer.data.meta?.period ?? null,
   }
+}
+
+/** How long the app waits for a save: the dashboard answers within 8 seconds, the bridge gives up after 10. */
+export const SAVE_TIMEOUT_MS = 11_000
+
+const savedSchema = z.object({ ok: z.literal(true), result: z.record(z.string(), z.unknown()).optional() })
+
+export type Saved<T> = { ok: true; result: T } | { ok: false; failure: Failure }
+
+/**
+ * Sends ONE save to the dashboard and checks its answer. No answer, or "unavailable", means it
+ * may have been stored: the app must reload and compare before saving again ('unconfirmed').
+ */
+export async function save<T>(port: HubPort, dataType: string, row: Record<string, unknown>, resultSchema: z.ZodType<T>): Promise<Saved<T>> {
+  const reply = await withTimeout(port.send('send-data', { dataType, rows: [row] }), port.requestTimeoutMs ?? SAVE_TIMEOUT_MS)
+  if (reply === NO_ANSWER) return { ok: false, failure: failure('unconfirmed') }
+  const refusal = refusalSchema.safeParse(reply)
+  if (refusal.success) {
+    const hubError = refusal.data.error?.trim() || null
+    const code = refusal.data.code
+    if (!isRefusalCode(code) || code === 'unavailable') return { ok: false, failure: failure(code === 'unavailable' ? 'unconfirmed' : 'no-answer', hubError) }
+    return { ok: false, failure: failure(code, hubError) }
+  }
+  const answer = savedSchema.safeParse(reply)
+  const result = answer.success ? resultSchema.safeParse(answer.data.result ?? {}) : null
+  if (!result?.success) return { ok: false, failure: failure('bad-answer') }
+  return { ok: true, result: result.data }
 }
 
 /** The bridge, as a port. Only meaningful inside the dashboard's frame. */

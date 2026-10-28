@@ -1,10 +1,13 @@
 import { CircleAlert, Download, FlaskConical } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { FailurePanel } from '../components/FailurePanel'
 import { DEMO_RUN } from '../data/demoRun'
 import { formatPeriod, lastMonth, recentMonths } from '../lib/dates'
 import { failure, type Failure, type HubPort } from '../lib/hubWire'
 import { askForCompanies, listCompanies, loadRun, type SavedRun } from '../lib/runStore'
+import { demoTemplateStore, hubTemplateStore, type TemplateStore } from '../lib/templateStore'
+import { ExportPanel } from './ExportPanel'
+import { TemplatesPanel } from './TemplatesPanel'
 
 type Companies =
   | { status: 'loading' }
@@ -28,6 +31,47 @@ const SHOWN = [
 /** A value exactly as the dashboard stored it: never rounded or reformatted here. */
 const shown = (value: unknown) => (value === undefined || value === null ? '' : String(value))
 
+type Tab = 'files' | 'templates'
+
+/** The two parts of the app: making the files, and the templates they are made with. */
+function Workspace({ store, company, run, filesPart }: { store: TemplateStore; company: { name: string; brn: string }; run: SavedRun | null; filesPart: ReactNode }) {
+  const [tab, setTab] = useState<Tab>('files')
+  // A template saved, made or removed: the files are made again from the templates.
+  const [version, setVersion] = useState(0)
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'files', label: 'Make the files' },
+    { id: 'templates', label: 'Templates' },
+  ]
+  return (
+    <div className="flex flex-col gap-4">
+      <div role="tablist" aria-label="MRA Returns" className="flex flex-wrap gap-2">
+        {tabs.map((one) => (
+          <button
+            key={one.id}
+            type="button"
+            role="tab"
+            id={`tab-${one.id}`}
+            aria-selected={tab === one.id}
+            aria-controls={`panel-${one.id}`}
+            className={`btn btn-sm ${tab === one.id ? 'btn-primary' : ''}`}
+            onClick={() => setTab(one.id)}
+          >
+            {one.label}
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel" id="panel-files" aria-labelledby="tab-files" hidden={tab !== 'files'} className="flex flex-col gap-4">
+        {filesPart}
+        {run?.run && <ExportPanel store={store} run={run} version={version} />}
+      </div>
+      <div role="tabpanel" id="panel-templates" aria-labelledby="tab-templates" hidden={tab !== 'templates'}>
+        {/* Mounted only when shown: the list is read from the dashboard when the tab opens. */}
+        {tab === 'templates' && <TemplatesPanel store={store} company={company} previewRun={run?.run ? run : null} onChanged={() => setVersion((n) => n + 1)} />}
+      </div>
+    </div>
+  )
+}
+
 export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; embedded: boolean; connected: boolean }) {
   const months = useMemo(() => recentMonths(), [])
   const [period, setPeriod] = useState(lastMonth)
@@ -35,6 +79,10 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
   const [companiesReload, setCompaniesReload] = useState(0)
   // The saved run lives in this state only: memory, never stored.
   const [fetched, setFetched] = useState<Fetch>({ status: 'idle' })
+  const selectedBrn = companies.status === 'loaded' ? companies.selectedBrn : null
+  const hubStore = useMemo(() => (selectedBrn ? hubTemplateStore(port, selectedBrn) : null), [port, selectedBrn])
+  // Opened on its own: fake templates in memory, made again each time the sample is opened.
+  const [demoStore, setDemoStore] = useState<TemplateStore | null>(null)
 
   useEffect(() => {
     if (!embedded || !connected) return
@@ -71,33 +119,67 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
   }, [companies, period, port])
 
   if (!embedded) {
+    const demo = fetched.status === 'done' && fetched.demo && demoStore
     return (
-      <section className="card rise-in" aria-labelledby="standalone-title">
-        <div className="card-header">
-          <h2 id="standalone-title" className="card-title">
-            Open this app from the dashboard
-          </h2>
-        </div>
-        <div className="flex flex-col gap-4 p-5">
-          <p className="m-0 text-sm text-muted">
-            MRA Returns makes the return files from the payroll runs saved in the Payroll Hub dashboard. Opened on its own, it can only show fake sample data.
-          </p>
-          {fetched.status === 'done' ? (
-            <RunView run={fetched.run} demo={fetched.demo} onClose={() => setFetched({ status: 'idle' })} />
-          ) : (
-            <div>
-              <button type="button" className="btn btn-primary" onClick={() => setFetched({ status: 'done', run: DEMO_RUN, demo: true })}>
-                <FlaskConical aria-hidden="true" />
-                Try with fake sample data
-              </button>
-            </div>
-          )}
-        </div>
-      </section>
+      <>
+        <section className="card rise-in" aria-labelledby="standalone-title">
+          <div className="card-header">
+            <h2 id="standalone-title" className="card-title">
+              Open this app from the dashboard
+            </h2>
+          </div>
+          <div className="flex flex-col gap-4 p-5">
+            <p className="m-0 text-sm text-muted">
+              MRA Returns makes the return files from the payroll runs saved in the Payroll Hub dashboard. Opened on its own, it can only show fake sample data.
+            </p>
+            {!demo && (
+              <div>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => {
+                    setDemoStore(demoTemplateStore())
+                    setFetched({ status: 'done', run: DEMO_RUN, demo: true })
+                  }}
+                >
+                  <FlaskConical aria-hidden="true" />
+                  Try with fake sample data
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+        {demo && (
+          <Workspace
+            store={demoStore}
+            company={{ name: DEMO_RUN.name, brn: DEMO_RUN.brn }}
+            run={fetched.run}
+            filesPart={
+              <section className="card rise-in" aria-labelledby="sample-title">
+                <div className="card-header">
+                  <h2 id="sample-title" className="card-title">
+                    Saved payroll run
+                  </h2>
+                </div>
+                <div className="p-5">
+                  <RunView
+                    run={fetched.run}
+                    demo
+                    onClose={() => {
+                      setFetched({ status: 'idle' })
+                      setDemoStore(null)
+                    }}
+                  />
+                </div>
+              </section>
+            }
+          />
+        )}
+      </>
     )
   }
 
-  return (
+  const runCard = (
     <section className="card rise-in" aria-labelledby="run-title">
       <div className="card-header">
         <h2 id="run-title" className="card-title">
@@ -137,6 +219,7 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
                 <span className="field-label">Month</span>
                 <select
                   className="input input-sm"
+                  data-values
                   value={period}
                   onChange={(event) => {
                     setPeriod(event.target.value)
@@ -167,6 +250,16 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
         )}
       </div>
     </section>
+  )
+
+  if (!(connected && companies.status === 'loaded' && companies.isAdmin && hubStore)) return runCard
+  return (
+    <Workspace
+      store={hubStore}
+      company={{ name: companies.selectedName, brn: companies.selectedBrn }}
+      run={fetched.status === 'done' ? fetched.run : null}
+      filesPart={runCard}
+    />
   )
 }
 

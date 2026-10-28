@@ -16,9 +16,22 @@ export interface FakeHubState {
   allowed: { period: string; brns: string[] } | null
   asked: { period: string; names: string[] }[]
   requests: Record<string, unknown>[]
+  mra: Record<string, { ern: string; telephone: string; mobile: string; declarant: string }>
+  email: string
+  templates: FakeTemplate[]
+  saves: Record<string, unknown>[]
+  templateRequests: Record<string, unknown>[]
+}
+export interface FakeTemplate {
+  template_id: string
+  name: string
+  revision: number
+  body: unknown
+  history: { revision: number; name: string; body: unknown; saved_at: string }[]
+  companies: { brn: string; own_values: unknown; values_revision: number }[]
 }
 export interface FakeHub {
   state: FakeHubState
-  handle(type: string, payload: { dataType: string; params?: Record<string, unknown> }): unknown
+  handle(type: string, payload: { dataType: string; params?: Record<string, unknown>; rows?: Record<string, unknown>[] }): unknown
 }
 export function createFakeHub(): FakeHub

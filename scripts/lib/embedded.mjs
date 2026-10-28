@@ -37,9 +37,9 @@ const DASHBOARD = `<!doctype html><meta charset="utf-8"><title>Fake dashboard (t
     window.log.push({ ...event.data, origin: event.origin })
     if (event.data.type === 'ready') post('ping', {}, 'ping-' + String(Date.now()).padStart(13, '0'))
     const { type, id, payload } = event.data
-    if (type !== 'request-data') return
+    if (type !== 'request-data' && type !== 'send-data') return
     const answer = window.hub.handle(type, payload)
-    if (answer !== undefined) post('response-data', answer, id)
+    if (answer !== undefined) post(type === 'send-data' ? 'received' : 'response-data', answer, id)
   })
 </script>`
 

@@ -21,8 +21,9 @@ const employee = (id: string, surname: string, otherNames: string, basic: number
     Travelling: 0,
     'Gross Pay': newBasic,
     'Age 60+': false,
-    CSG: 0,
-    NSF: 0,
+    // Employer CSG 3 % and employer NSF 2.5 % (capped at 29,710), to 2 decimals as a saved run keeps them.
+    CSG: Math.round(newBasic * 3) / 100,
+    NSF: Math.round(Math.min(newBasic, 29710) * 2.5) / 100,
     PAYE: 0,
     'Employee CSG': Math.round(newBasic * 1.5) / 100,
     'Employee NSF': Math.round(newBasic) / 100,
@@ -50,4 +51,7 @@ export const DEMO_RUN: SavedRun = {
     employee('X0000000000002', 'ROE', 'RICHARD', 17911, 635, '2021-01-01'),
     employee('X0000000000003', 'POE', 'ALEX', 17110, 635, '2026-01-04'),
   ],
+  mra: { ern: '001234', telephone: '2000000', mobile: '52000000', declarant: 'JANE SAMPLE' },
+  email: 'returns@example.org',
+  templates: [],
 }

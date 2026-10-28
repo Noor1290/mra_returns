@@ -5,6 +5,7 @@
 // other address and writes nothing to browser storage.
 // Run after `npm run build`: node scripts/check-bridge.mjs
 // Set MRA_SHOTS to a folder to keep screenshots of the embedded pages (fake data only).
+import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { chromium } from 'playwright'
 import { lowContrast, unnamedControls } from './lib/a11y-page.mjs'
@@ -15,6 +16,23 @@ const check = (condition, text) => {
   if (!condition) problems.push(text)
 }
 const shots = process.env.MRA_SHOTS
+
+/** A FAKE CSG return file, as downloaded from the MRA portal: Windows-1252, CRLF, 19 fields a line. */
+const e = String.fromCharCode(0xe9)
+const FAKE_CSG_UPLOAD = Buffer.from(
+  [
+    `MRA,PACO,V1.0${','.repeat(16)}`,
+    `Employer Registration Number,Employer Business Registration Number ,Employer Name,Tax Period,Telephone Number,Mobile Number,Name of Declarant,Email Address${','.repeat(11)}`,
+    `009999,C9999999,UPLOADED CO LTD,2607,,59999999,EXAMPLE PERSON,example@example.org${','.repeat(11)}`,
+    `Employee ID,Surname of Employee,Other Names of Employee,Wage Bill excluding Wage Relativity Adjustment (MUR),Wage Relativity Adjustment (MUR),Total Wage Bill (MUR),Contribution Code,Pay Code,Frequency ,Contribution Sociale G${e}n${e}ralis${e}e Amount (CSG) on Wage Bill (MUR),National Savings Fund Amount (NSF) (MUR),LEVY Applicable? (Y/N),Emoluments excluding travelling,Full Time Employment (Y/N),PAYE for Income Tax (MUR),PAYE for Solidarity Levy (MUR),End of Year Bonus (MUR),Contribution Sociale G${e}n${e}ralis${e}e Amount (CSG) on End-of-Year Bonus (MUR),Emoluments excluding Exempt Emoluments and Statutory End-of-Year Bonus (MUR)`,
+    'Y9999999,EXAMPLE,UPLOADED,1000,0,1000,S,M,1,45,25,Y,1000,Y,0,0,0,0,1000',
+    'Y9999998,EXAMPLE,SECOND,1000,0,1000,S,M,1,45,25,Y,1000,Y,0,0,0,0,1000',
+  ]
+    .map((line) => `${line}
+`)
+    .join(''),
+  'latin1',
+)
 
 const browser = await chromium.launch()
 try {
@@ -82,10 +100,59 @@ try {
   await shot(page, '4-declined')
   console.log('  refusals: declined, locked and no answer each explained')
 
-  // 5. Every message went to the exact dashboard origin, from this app.
-  const sent = await page.evaluate(() => window.log.map((m) => ({ type: m.type, from: m.from, to: m.to, origin: m.origin })))
+  // 5. Templates: a fake MRA CSG file uploaded as a template, two cells set up, saved in the
+  // dashboard (without the example rows of the upload), then the file made and downloaded.
+  await page.evaluate(() => {
+    window.hub.state.answer = 'allow'
+  })
+  await getRun(app, 'August 2026')
+  await app.getByTestId('export-no-templates').waitFor()
+  await app.getByRole('tab', { name: 'Templates' }).click()
+  await app.getByTestId('no-templates').waitFor()
+  await app.locator('#template-file').setInputFiles({ name: 'CSG AUGUST 2026 (2).csv', mimeType: 'text/csv', buffer: FAKE_CSG_UPLOAD })
+  await app.getByTestId('upload-rows').waitFor()
+  await shot(page, '6-upload-rows')
+  await app.getByRole('button', { name: 'Set up the cells' }).click()
+  await app.getByTestId('template-editor').waitFor()
+  await app.getByRole('button', { name: /^Cell A5/ }).click()
+  await app.getByRole('combobox', { name: /^What goes in it/ }).selectOption('identity')
+  await app.getByRole('button', { name: /^Cell A3/ }).click()
+  check((await app.getByTestId('cell-editor').textContent()).includes('In the uploaded file: 009999'), 'The uploaded text of a cell is not shown as a hint.')
+  await app.getByRole('combobox', { name: /^What goes in it/ }).selectOption('company')
+  await app.getByRole('combobox', { name: /^Detail/ }).selectOption('ern')
+  await shot(page, '7-template-editor')
+  await app.getByRole('button', { name: 'Save', exact: true }).click()
+  await app.getByText('Saved in the dashboard.').waitFor()
+  const saves = await page.evaluate(() => window.hub.state.saves)
+  check(saves.length === 1 && saves[0].action === 'save' && saves[0].expected_revision === 0 && saves[0].brn === 'C1234567', `The template was not saved once, as new, for the selected company: ${JSON.stringify(saves.map((one) => one.action))}`)
+  const stored = JSON.stringify(saves[0] ?? {})
+  for (const text of ['UPLOADED', 'EXAMPLE', '009999', 'Y9999999']) check(!stored.includes(text), `The saved template holds "${text}" from the uploaded file's employer or employee rows.`)
+  check(stored.includes('Généralisée') && stored.includes('Frequency '), 'The headings were not kept exactly.')
+  // Removing it from its only company asks first and says it cannot be undone.
+  await app.getByRole('button', { name: 'Remove from this company' }).click()
+  const removeText = await app.getByTestId('remove-text').textContent()
+  check(removeText.includes("This can't be undone."), 'Removing a template from its last company does not say it cannot be undone.')
+  await shot(page, '8-remove-last')
+  await app.getByRole('button', { name: 'Cancel' }).click()
+  check((await page.evaluate(() => window.hub.state.templates.length)) === 1, 'Cancel removed the template.')
+
+  await app.getByRole('tab', { name: 'Make the files' }).click()
+  await app.getByTestId('export-file').waitFor()
+  check((await app.getByTestId('excel-reminder').textContent()).includes('Do not open it in Excel'), 'The reminder about Excel is missing.')
+  const [download] = await Promise.all([page.waitForEvent('download'), app.getByRole('button', { name: 'Download the file' }).click()])
+  check(download.suggestedFilename() === 'CSG AUGUST 2026 ABC CO LTD.csv', `The file name is ${download.suggestedFilename()}.`)
+  const lines = readFileSync(await download.path()).toString('latin1').split('\r\n')
+  const empty = (count) => ','.repeat(count)
+  check(lines[0] === `MRA,PACO,V1.0${empty(16)}`, `The first line is ${lines[0]}`)
+  check(lines[2] === `001234${empty(18)}`, `The employer line is ${lines[2]}`)
+  check(lines[4] === `X0000000000001${empty(18)}` && lines[6] === `X0000000000003${empty(18)}` && lines[7] === '' && lines.length === 8, `The employee lines are ${JSON.stringify(lines.slice(4))}`)
+  await shot(page, '9-export')
+  console.log('  templates: uploaded, set up, saved without the example rows, removal asks first, file made and downloaded')
+
+  // 6. Every message went to the exact dashboard origin, from this app.
+  const sent = await page.evaluate(() => window.log.map((m) => ({ type: m.type, from: m.from, to: m.to, origin: m.origin, dataType: m.payload?.dataType })))
   check(sent.every((m) => m.origin === HUB && m.from === 'mra-returns' && m.to === 'dashboard'), 'A message did not come from the app at the exact origin.')
-  check(sent.every((m) => m.type !== 'send-data'), 'The app sent data to the dashboard: it only asks.')
+  check(sent.every((m) => m.type !== 'send-data' || m.dataType === 'mra-template'), 'The app sent the dashboard something other than a template.')
   const storage = await page.frames()[1].evaluate(async () => ({
     local: localStorage.length,
     session: sessionStorage.length,

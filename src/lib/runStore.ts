@@ -58,7 +58,9 @@ export async function askForCompanies(port: HubPort, selectedBrn: string, period
 /** One employee's row of a saved run: the keys of the payroll export, exactly as stored. */
 export type RunRow = Record<string, unknown>
 
-const runSchema = z
+const detail = (max: number) => z.string().max(max)
+
+export const runSchema = z
   .object({
     brn,
     name: companyName,
@@ -66,6 +68,16 @@ const runSchema = z
     period: month,
     run: z.boolean(),
     employees: z.array(z.record(z.string(), z.unknown())).max(10_000),
+    // Since the dashboard's migration 0020: the company's MRA details (from its Company profile),
+    // the signed-in user's own email for the returns, and its own values for its templates.
+    mra: z
+      .object({ ern: detail(20), telephone: detail(30), mobile: detail(30), declarant: detail(120) })
+      .default({ ern: '', telephone: '', mobile: '', declarant: '' }),
+    email: detail(254).default(''),
+    templates: z
+      .array(z.object({ template_id: z.uuid(), own_values: z.unknown(), values_revision: z.number().int().min(1) }))
+      .max(100)
+      .default([]),
   })
   // A month that was never sent to the dashboard has no employees.
   .refine((row) => row.run || row.employees.length === 0)

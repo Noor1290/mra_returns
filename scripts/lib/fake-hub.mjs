@@ -49,6 +49,17 @@ export function createFakeHub() {
     asked: [],
     /** Every request seen, in order. */
     requests: [],
+    /** The MRA details of each company (mra-batch load), by BRN, and the user's email. */
+    mra: { C1234567: { ern: '001234', telephone: '2000000', mobile: '52000000', declarant: 'JANE SAMPLE' } },
+    email: 'returns@example.org',
+    /**
+     * The MRA templates (mra-template), as the dashboard keeps them: the body exactly as sent,
+     * every revision, and each company's own values. FAKE content.
+     */
+    templates: [],
+    /** Every save seen, in order (one row each), and every template request. */
+    saves: [],
+    templateRequests: [],
   }
   const norm = (brn) => String(brn).trim().toUpperCase()
   const refuse = (code, error) => ({ ok: false, code, error })
@@ -60,7 +71,100 @@ export function createFakeHub() {
   }
   const isMonth = (value) => typeof value === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(value)
 
+  const now = () => new Date('2026-10-28T09:00:00Z').toISOString()
+  const templateOf = (id) => state.templates.find((one) => one.template_id === id)
+  const usedHere = (one) => one && one.companies.some((company) => norm(company.brn) === norm(state.selected))
+  const linkHere = (one) => one.companies.find((company) => norm(company.brn) === norm(state.selected))
+  const isAdminOf = (brn) => state.companies.some((one) => norm(one.brn) === norm(brn) && one.role === 'admin')
+  const access = (one) => ({
+    can_change: one.companies.every((company) => isAdminOf(company.brn)),
+    companies: one.companies.length,
+    admin_of: one.companies.filter((company) => isAdminOf(company.brn)).length,
+  })
+  const summary = (one) => ({
+    template_id: one.template_id,
+    name: one.name,
+    revision: one.revision,
+    updated_at: now(),
+    updated_by_you: true,
+    ...access(one),
+    values_revision: linkHere(one).values_revision,
+  })
+
+  /** "mra-template": requests and saves, as payroll_hub docs/INTEGRATION.md says. */
+  function handleTemplate(type, payload) {
+    if (selected().role !== 'admin') return refuse('forbidden', 'Only an admin of this company can see or change its MRA templates.')
+    const answer = (rows) => ({ ok: true, dataType: 'mra-template', rows, meta: meta() })
+    if (type === 'request-data') {
+      const params = payload.params ?? {}
+      state.templateRequests.push(params)
+      if (params.brn !== undefined && norm(params.brn) !== norm(state.selected)) return refuse('wrong-company', 'The BRN sent is not the selected company.')
+      if (params.action === 'list') return answer(state.templates.filter(usedHere).map(summary))
+      const one = templateOf(params.template_id)
+      if (!usedHere(one)) return refuse('not-found', 'This company does not use that MRA template. Reload the list.')
+      if (params.action === 'load') return answer([{ ...summary(one), body: one.body, own_values: linkHere(one).own_values }])
+      if (params.action === 'history') return answer([...one.history].reverse().map(({ revision, name, saved_at }) => ({ revision, name, saved_at, saved_by_you: true })))
+      if (params.action === 'revision') {
+        const kept = one.history.find((row) => row.revision === params.revision)
+        return kept ? answer([{ template_id: one.template_id, revision: kept.revision, name: kept.name, body: kept.body, saved_at: kept.saved_at, saved_by_you: true }]) : refuse('not-found', 'This MRA template has no such revision.')
+      }
+      if (params.action === 'companies') {
+        return answer(admins().map((company) => ({ brn: company.brn, name: company.name, selected: norm(company.brn) === norm(state.selected), uses: one.companies.some((c) => norm(c.brn) === norm(company.brn)) })))
+      }
+      return refuse('invalid', 'The request is not valid.')
+    }
+    const row = payload.rows?.[0] ?? {}
+    state.saves.push(row)
+    if (payload.rows?.length !== 1) return refuse('invalid', 'Send exactly one row: one command per message.')
+    if (norm(row.brn ?? '') !== norm(state.selected)) return refuse('wrong-company', 'The BRN sent is not the selected company.')
+    const one = templateOf(row.template_id)
+    if (row.action === 'save') {
+      if (!one) {
+        if (row.expected_revision !== 0) return refuse('not-found', 'The dashboard has no such item.')
+        const made = { template_id: row.template_id, name: row.name.trim(), revision: 1, body: row.body, history: [], companies: [{ brn: state.selected, own_values: {}, values_revision: 1 }] }
+        made.history.push({ revision: 1, name: made.name, body: row.body, saved_at: now() })
+        state.templates.push(made)
+        return { ok: true, result: { action: 'save', template_id: made.template_id, name: made.name, revision: 1, updated_at: now() } }
+      }
+      if (!usedHere(one)) return refuse('not-found', 'The dashboard has no such item.')
+      if (!access(one).can_change) return refuse('forbidden', 'Only an admin of this company can do this.')
+      if (one.revision !== row.expected_revision) return refuse('stale', 'It was saved by someone else since you loaded it. Reload, then make the change again.')
+      one.revision += 1
+      one.name = row.name.trim()
+      one.body = row.body
+      one.history.push({ revision: one.revision, name: one.name, body: row.body, saved_at: now() })
+      return { ok: true, result: { action: 'save', template_id: one.template_id, name: one.name, revision: one.revision, updated_at: now() } }
+    }
+    if (!usedHere(one)) return refuse('not-found', 'This company does not use that MRA template. Reload the list.')
+    const link = linkHere(one)
+    if (row.action === 'values') {
+      if (link.values_revision !== row.expected_revision) return refuse('stale', 'It was saved by someone else since you loaded it. Reload, then make the change again.')
+      link.values_revision += 1
+      link.own_values = row.own_values
+      return { ok: true, result: { action: 'values', template_id: one.template_id, name: one.name, company: selected().name, values_revision: link.values_revision, updated_at: now() } }
+    }
+    if (row.action === 'attach') {
+      const target = admins().find((company) => norm(company.brn) === norm(row.company_brn))
+      if (!target) return refuse('forbidden', 'Only a company where you are an admin can use this template.')
+      if (one.companies.some((company) => norm(company.brn) === norm(target.brn))) return refuse('stale', 'That company already uses this MRA template. Reload, then try again.')
+      one.companies.push({ brn: target.brn, own_values: row.own_values ?? {}, values_revision: 1 })
+      return { ok: true, result: { action: 'attach', template_id: one.template_id, name: one.name, brn: target.brn, company: target.name, values_revision: 1 } }
+    }
+    if (row.action === 'detach') {
+      if (one.revision !== row.expected_revision) return refuse('stale', 'It was saved by someone else since you loaded it. Reload, then make the change again.')
+      one.companies = one.companies.filter((company) => company !== link)
+      const deleted = one.companies.length === 0
+      if (deleted) state.templates = state.templates.filter((other) => other !== one)
+      return { ok: true, result: { action: 'detach', template_id: one.template_id, name: one.name, company: selected().name, deleted } }
+    }
+    return refuse('invalid', 'The request is not valid.')
+  }
+
   function handle(type, payload) {
+    if (payload.dataType === 'mra-template' && (type === 'request-data' || type === 'send-data')) {
+      if (state.refuseAll) return refuse(state.refuseAll.code, state.refuseAll.error)
+      return handleTemplate(type, payload)
+    }
     if (type !== 'request-data' || payload.dataType !== 'mra-batch') return { ok: false, error: 'This app is not registered for that data type.' }
     const params = payload.params ?? {}
     state.requests.push(params)
@@ -98,7 +202,20 @@ export function createFakeHub() {
       return {
         ok: true,
         dataType: 'mra-batch',
-        rows: [{ brn: target.brn, name: target.name, address: target.address, period: params.period, run: employees !== undefined, employees: employees ?? [] }],
+        rows: [
+          {
+            brn: target.brn,
+            name: target.name,
+            address: target.address,
+            period: params.period,
+            run: employees !== undefined,
+            employees: employees ?? [],
+            mra: state.mra[target.brn] ?? { ern: '', telephone: '', mobile: '', declarant: '' },
+            email: state.email,
+            templates: state.templates
+              .flatMap((one) => one.companies.filter((company) => norm(company.brn) === norm(target.brn)).map((company) => ({ template_id: one.template_id, own_values: company.own_values, values_revision: company.values_revision }))),
+          },
+        ],
         meta: meta(params.period),
       }
     }

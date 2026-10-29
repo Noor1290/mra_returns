@@ -21,4 +21,4 @@ A frontend-only app (React + Vite + TypeScript + Tailwind, GitHub Pages at https
 - Never push or merge; the owner does that.
 
 ## Status
-- [x] Stage 0  - [x] Stage 1  - [ ] Stage 2
+- [x] Stage 0  - [x] Stage 1  - [x] Stage 2

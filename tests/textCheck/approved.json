@@ -851,6 +851,226 @@
     {
       "text": "text: This company has no templates yet. Make one under Templates first.",
       "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: dashboard: saved run"
+    },
+    {
+      "text": "text: Several companies at once",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: One zip with a folder per template, one file per company in each, and a report. The dashboard asks you once for all of them.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: Companies",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: files"
+    },
+    {
+      "text": "text: Only the companies where you are an admin are listed.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: files"
+    },
+    {
+      "text": "text: Search companies",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: files"
+    },
+    {
+      "text": "text: Select all",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: files"
+    },
+    {
+      "text": "text: Clear",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: files"
+    },
+    {
+      "text": "aria-label: Companies to include",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: files"
+    },
+    {
+      "text": "text: 3 of 3 companies chosen.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: files"
+    },
+    {
+      "text": "text: Make the zip",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: files"
+    },
+    {
+      "text": "text: No company matches the search.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: no company matches"
+    },
+    {
+      "text": "text: 0 of 3 companies chosen.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: none chosen"
+    },
+    {
+      "text": "text: Company 1 of 3:",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: progress"
+    },
+    {
+      "text": "aria-label: Companies done",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: progress"
+    },
+    {
+      "text": "text: Report",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: Made: 3 files. Skipped: 3.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: Made on . The report is also in the zip, as Report.txt.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: Made: MRA CSG (PACO)/CSG AUGUST 2026 ABC CO LTD.csv, 3 employees.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: MRA CSG (PACO):",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: Made: MRA PRGF/PRGF AUGUST 2026 ABC CO LTD.csv, 3 employees.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: MRA PRGF:",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: DEF Ltd, BRN C3333333",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: Made: MRA CSG (PACO)/CSG AUGUST 2026 DEF LTD.csv, 2 employees.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: Required values that are empty",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: Employer row: A3 (Employer Registration Number) is required and has no value.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: Employer row: G3 (Name of Declarant) is required and has no value.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: BEN, ID X0000000000012 (row 2): B5 (Surname of Employee) is required and has no value.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: SAMPLE ANNE (row 1): CSG is 562.5 in the saved run (cell J5).",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: SAMPLE ANNE (row 1): Employee NSF is 187.5 in the saved run (cell K5).",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: Skipped: this company does not use this template.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: MRA details missing: Employer Registration Number (ERN), Telephone number, Mobile number, Name of declarant.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: Fill them in on its Company profile in the dashboard.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: GHI Ltd, BRN C4444444",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: Skipped: August 2026 has not been sent to the dashboard for this company.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: Download the zip",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: 3 required values are empty",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: dialog: required values"
+    },
+    {
+      "text": "text: Fill these in, or export anyway.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: dialog: required values"
+    },
+    {
+      "text": "text: Go back",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: dialog: required values"
+    },
+    {
+      "text": "text: Export anyway",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: dialog: required values"
+    },
+    {
+      "text": "text: Before export",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Required",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: Every employee for whom this cell comes out empty is listed before export.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: cell: a calculation"
+    },
+    {
+      "text": "text: 0 counts as missing",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: cell: required, a number"
+    },
+    {
+      "text": "text: A number with no value always counts as missing. With this ticked, a 0 does too.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: cell: required, a number"
+    },
+    {
+      "text": "text: Listed before export when this cell comes out empty.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: cell: required, the employer row"
+    },
+    {
+      "text": "text: For ABC Co Ltd.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: cell: required, the employer row"
+    },
+    {
+      "text": "text: Pad every line to the full width (12 fields)",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1, MRA_RETURNS_SHOTS/stage1/NEW_TEXTS.md); seen on: on its own: dialog: delete, the last company"
+    },
+    {
+      "text": "text: Delete MRA PRGF?",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: dialog: delete, the last company"
+    },
+    {
+      "text": "text: ABC Co Ltd is the only company using this template, so removing it deletes the template and all its history. This can't be undone.",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1, MRA_RETURNS_SHOTS/stage1/NEW_TEXTS.md); seen on: on its own: dialog: delete, the last company"
+    },
+    {
+      "text": "text: Delete the template",
+      "why": "approved by the owner 28 Oct 2026 (Stage 1, MRA_RETURNS_SHOTS/stage1/NEW_TEXTS.md); seen on: on its own: dialog: delete, the last company"
+    },
+    {
+      "text": "text: 2 of 2 companies chosen.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: dashboard: several companies"
+    },
+    {
+      "text": "text: Made: 1 file. Skipped: 1.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: dashboard: several companies, report"
+    },
+    {
+      "text": "text: MRA details missing: Employer Registration Number (ERN).",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: dashboard: several companies, report"
+    },
+    {
+      "text": "text: The dashboard then selects that company, and this app starts again. Download the zip first.",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: dashboard: several companies, report"
+    },
+    {
+      "text": "text: Open its Company profile",
+      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: dashboard: several companies, report"
     }
   ]
 }

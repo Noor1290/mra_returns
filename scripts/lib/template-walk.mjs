@@ -10,6 +10,9 @@ export async function walkTemplates(page, visit) {
   const openTemplate = async (name) => {
     await page.getByRole('button', { name: new RegExp(`^${name}`) }).click()
     await page.getByTestId('template-editor').waitFor()
+    // Another template may still be open: wait until this one is loaded.
+    const box = page.getByRole('textbox', { name: 'Template name' })
+    while (!(await box.inputValue()).startsWith(name)) await page.waitForTimeout(50)
   }
   const status = async (text) => page.getByRole('status').filter({ hasText: text }).waitFor()
   // Undo reloads the saved template; wait until it is back.

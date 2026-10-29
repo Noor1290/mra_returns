@@ -192,7 +192,7 @@ describe('several companies in one zip', () => {
     ])
     // In the zip as a text file: UTF-8 with a byte-order mark, CRLF.
     const report = readZip(batchZip(result).bytes).find((entry) => entry.path === 'Report.txt')!
-    expect([...report.bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf])
+    expect(Array.from(report.bytes.subarray(0, 3))).toEqual([0xef, 0xbb, 0xbf])
     expect(new TextDecoder().decode(report.bytes)).toBe(`${reportLines(result).join('\r\n')}\r\n`)
   })
 

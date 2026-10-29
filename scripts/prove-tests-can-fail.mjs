@@ -39,8 +39,25 @@ const changes = [
   ['Short lines are not padded to the full width', 'src/lib/csvFile.ts', "while (row.length < width) row.push('')", ''],
   ['"Never" quotes a field anyway', 'src/lib/csvFile.ts', "if (quotes === 'always' || (quotes === 'needed' && needs))", 'if (true)'],
   ['Windows-1252 is written as UTF-8', 'src/lib/csvFile.ts', "  if (encoding !== 'windows-1252') {\n", '  if (true) {\n'],
-  ['Characters Windows forbids stay in a file name', 'src/lib/fileName.ts', 'name = [...name].filter(allowed).join(\'\')', 'name = [...name].join(\'\')'],
+  ['Characters Windows forbids stay in a file name', 'src/lib/fileName.ts', "[...name].filter(allowed).join('')", "[...name].join('')"],
   ['Example rows of an upload are saved', 'src/lib/upload.ts', "    if (kind === 'example') return\n", ''],
+  // Stage 2: required values, several companies, the zip and the report.
+  ['A required cell that comes out empty is not listed', 'src/lib/evaluate.ts', 'if (cell.required && isMissing(cell, result))', 'if (false)'],
+  ['A required number with no value is not listed', 'src/lib/evaluate.ts', '  if (result.empty) return true\n', ''],
+  ['"0 counts as missing" is ignored', 'src/lib/evaluate.ts', 'return cell.zeroMissing === true && written !== null && isZero(written)', 'return false'],
+  ['A 0 counts as missing without "0 counts as missing"', 'src/lib/evaluate.ts', 'return cell.zeroMissing === true && written !== null && isZero(written)', 'return written !== null && isZero(written)'],
+  ['A company the dashboard did not allow is read anyway', 'src/lib/batch.ts', 'if (!granted.has(normaliseBrn(company.brn))) {', 'if (false) {'],
+  ['One refused company stops the whole batch', 'src/lib/batch.ts', "      outcomes.push({ brn: company.brn, name: company.name, failure: loaded.failure, run: null, files: skipped('refused'), missingDetails: [] })", '      return { ok: false, failure: loaded.failure }'],
+  ['A company that does not use a template gets a file anyway', 'src/lib/batch.ts', "    if (!link) return { template, made: false, reason: 'not-used' }\n", "    if (!link) return { template, made: true, file: makeReturnFile(template.body, readOwnValues({}), run, run.period, run.employees), path: '' }\n"],
+  ["A company's own values are ignored in the zip", 'src/lib/batch.ts', 'readOwnValues(link.own_values)', 'readOwnValues({})'],
+  ['Every file goes in every folder', 'src/lib/batch.ts', 'if (outcome.made && outcome.template.template_id === template.template_id)', 'if (outcome.made)'],
+  ['The MRA details missing are not listed', 'src/lib/batch.ts', "used.has(field) && info[field].trim() === ''", 'false'],
+  ['Two files with the same name in a folder keep it', 'src/lib/fileName.ts', 'for (let n = 2; taken.has(candidate.toLowerCase()); n++)', 'for (let n = 2; false; n++)'],
+  ['Underscores stay in file names', 'src/lib/fileName.ts', ".replace(/_/g, ' ')", ''],
+  ['The zip points at the wrong place for a file', 'src/lib/zip.ts', 'offset += 30 + item.name.length + item.bytes.length', 'offset += 30 + item.bytes.length'],
+  ['The .50 list is left out of the report', 'src/lib/report.ts', '      if (built.halfNotes.length > 0) {', '      if (false) {'],
+  ['The required values are left out of the report', 'src/lib/report.ts', '      if (built.missing.length > 0) {', '      if (false) {'],
+  ['open-profile no longer names the company', 'src/lib/runStore.ts', "{ action: 'open-profile', company_brn: companyBrn }", "{ action: 'open-profile' }"],
 ]
 
 function runTests() {

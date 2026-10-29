@@ -2,7 +2,8 @@
 // words. Every text here is on the approved list (tests/textCheck/approved.json) once shown.
 
 import { toText } from './decimal'
-import type { CellProblem, HalfNote, Problem } from './evaluate'
+import type { SkipReason } from './batch'
+import type { CellProblem, HalfNote, MissingValue, Problem } from './evaluate'
 import type { WriteProblem } from './csvFile'
 import type { CompanyField, Source, SourceType } from './template'
 import type { UploadKind } from './upload'
@@ -87,6 +88,54 @@ export function writeProblemText(problem: WriteProblem, separator: string): stri
   return problem.kind === 'character'
     ? `${where}: the character "${problem.character}" cannot be written in Windows-1252. It would become "?".`
     : `${where} holds a "${separator}", a quote or a line break, which cannot be written without quotes. Choose quotes "when needed" in the file settings.`
+}
+
+/** "E5 (Surname of Employee) is required and has no value." */
+export function missingText(missing: Pick<MissingValue, 'cell' | 'heading'>): string {
+  const where = missing.heading ? `${missing.cell} (${missing.heading})` : missing.cell
+  return `${where} is required and has no value.`
+}
+
+/** Who a required value is missing for: an employee by name and ID, or the employer row. */
+export function missingWho(missing: MissingValue, employees: readonly Record<string, unknown>[]): string {
+  return missing.employee === null ? 'Employer row' : employeeWithId(employees[missing.employee], missing.employee)
+}
+
+/** "MRA details missing: Employer Registration Number (ERN), Name of declarant." */
+export function detailsMissingText(fields: readonly CompanyField[]): string {
+  return `MRA details missing: ${fields.map((field) => COMPANY_FIELD_LABELS[field]).join(', ')}.`
+}
+
+/** Why a file of the batch was not made. */
+export function skipText(reason: SkipReason, month: string): string {
+  switch (reason) {
+    case 'not-allowed':
+      return 'Skipped: the dashboard did not allow this company. You may no longer be its admin.'
+    case 'refused':
+      return "Skipped: the dashboard did not send this company's saved run."
+    case 'no-run':
+      return `Skipped: ${month} has not been sent to the dashboard for this company.`
+    case 'not-used':
+      return 'Skipped: this company does not use this template.'
+  }
+}
+
+/** "Made: MRA CSG (PACO)/CSG AUGUST 2026 ABC CO LTD.csv, 3 employees." */
+export function madeText(path: string, employees: number): string {
+  return `Made: ${path}, ${employees} ${employees === 1 ? 'employee' : 'employees'}.`
+}
+
+/** "Made: 3 files. Skipped: 2." */
+export function batchCountText(made: number, skipped: number): string {
+  return `Made: ${made} ${made === 1 ? 'file' : 'files'}. Skipped: ${skipped}.`
+}
+
+/** An employee by name and ID, as the required-value lists name them: "DOE JANE, ID X0000000000001 (row 1)". */
+export function employeeWithId(row: Record<string, unknown> | undefined, index: number): string {
+  const id = typeof row?.ID === 'string' ? row.ID.trim() : ''
+  const name = employeeName(row, index)
+  if (id === '') return name
+  return name.startsWith('Row ') ? `ID ${id} (row ${index + 1})` : name.replace(/ \(row \d+\)$/, `, ID ${id} (row ${index + 1})`)
 }
 
 /** An employee of the saved run, as the lists name them: "DOE JANE (row 1)". */

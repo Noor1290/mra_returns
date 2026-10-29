@@ -89,7 +89,15 @@ const formatSchema = z.discriminatedUnion('type', [
 ])
 export type Format = z.infer<typeof formatSchema>
 
-const cellSchema = z.strictObject({ id: cellIdSchema, source: sourceSchema, format: formatSchema })
+const cellSchema = z.strictObject({
+  id: cellIdSchema,
+  source: sourceSchema,
+  format: formatSchema,
+  /** Listed before export when it comes out empty. Left out of the JSON when off. */
+  required: z.literal(true).optional(),
+  /** With `required`, in a number cell: a 0 counts as missing too. Left out when off. */
+  zeroMissing: z.literal(true).optional(),
+})
 export type Cell = z.infer<typeof cellSchema>
 
 const rowSchema = z.discriminatedUnion('kind', [

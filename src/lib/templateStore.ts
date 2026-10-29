@@ -7,7 +7,7 @@
 // memory instead, with the same rules, so "Try with fake sample data" can be used end to end.
 
 import { z } from 'zod'
-import { standardTemplate } from '../data/mraLayouts'
+import { demoTemplate } from '../data/mraLayouts'
 import { ask, failure, normaliseBrn, save, type Failure, type HubPort } from './hubWire'
 import { NO_OWN_VALUES, readOwnValues, templateBodySchema, type OwnValues, type TemplateBody } from './template'
 
@@ -156,8 +156,8 @@ export function demoTemplateStore(): TemplateStore {
     usedBy: new Set(['C1234567']),
   })
   const store = new Map<string, Stored>([
-    [DEMO_TEMPLATE_IDS.csg, make(DEMO_TEMPLATE_IDS.csg, 'MRA CSG (PACO)', standardTemplate('csg'))],
-    [DEMO_TEMPLATE_IDS.prgf, make(DEMO_TEMPLATE_IDS.prgf, 'MRA PRGF', standardTemplate('prgf'))],
+    [DEMO_TEMPLATE_IDS.csg, make(DEMO_TEMPLATE_IDS.csg, 'MRA CSG (PACO)', demoTemplate('csg'))],
+    [DEMO_TEMPLATE_IDS.prgf, make(DEMO_TEMPLATE_IDS.prgf, 'MRA PRGF', demoTemplate('prgf'))],
   ])
   const companies = [
     { brn: 'C1234567', name: 'ABC Co Ltd' },

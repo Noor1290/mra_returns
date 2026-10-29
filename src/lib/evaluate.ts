@@ -53,6 +53,17 @@ export interface HalfNote {
   value: Decimal
 }
 
+/**
+ * A cell marked "Required" that comes out empty: a text or date cell written empty, a number
+ * cell with no value (written 0), or a number cell written 0 when "0 counts as missing" is on.
+ */
+export interface MissingValue {
+  cell: string
+  heading: string
+  /** Which employee, by position in the saved run (from 0); null for the employer row. */
+  employee: number | null
+}
+
 export interface BuiltFile {
   /** Every line, as its fields, in order. */
   lines: string[][]
@@ -61,6 +72,7 @@ export interface BuiltFile {
   leftOut: number[]
   problems: Problem[]
   halfNotes: HalfNote[]
+  missing: MissingValue[]
 }
 
 interface Evaluated {
@@ -70,6 +82,8 @@ interface Evaluated {
   uses: { key: string; value: Decimal }[]
   /** Whether working it out rounded to whole rupees somewhere. */
   roundsWhole: boolean
+  /** No value came from the data: an empty source, or a calculation of empty values only. */
+  empty: boolean
   problem: CellProblem | null
 }
 
@@ -102,7 +116,7 @@ class Evaluator {
     const done = this.memo.get(cell.id)
     if (done) return done
     // Only reached through operand(), which tells a self-reference from a loop first.
-    if (this.stack.includes(cell.id)) return { value: NONE, text: '', uses: [], roundsWhole: false, problem: 'loop' }
+    if (this.stack.includes(cell.id)) return { value: NONE, text: '', uses: [], roundsWhole: false, empty: true, problem: 'loop' }
     this.stack.push(cell.id)
     const worked = this.work(cell)
     this.stack.pop()
@@ -112,6 +126,7 @@ class Evaluator {
       text: worked.problem ? '' : written.text,
       uses: worked.uses,
       roundsWhole: worked.roundsWhole || (cell.format.type === 'number' && cell.format.decimals === 0),
+      empty: worked.empty,
       problem: worked.problem ?? written.problem,
     }
     this.memo.set(cell.id, result)
@@ -119,7 +134,7 @@ class Evaluator {
   }
 
   private work(cell: Cell): Omit<Evaluated, 'text'> {
-    const plain = (value: Value) => ({ value, uses: [], roundsWhole: false, problem: null })
+    const plain = (value: Value) => ({ value, uses: [], roundsWhole: false, empty: value.kind === 'none', problem: null })
     const source = cell.source
     switch (source.type) {
       case 'empty':
@@ -137,7 +152,7 @@ class Evaluator {
         return plain(monthValue(this.context.period))
       case 'employee': {
         const value = valueOf(this.employee?.[source.key])
-        return { value, uses: value.kind === 'number' ? [{ key: source.key, value: value.value }] : [], roundsWhole: false, problem: null }
+        return { value, uses: value.kind === 'number' ? [{ key: source.key, value: value.value }] : [], roundsWhole: false, empty: value.kind === 'none', problem: null }
       }
       case 'map': {
         const loose = (text: string) => text.trim().replace(/\s+/g, ' ').toLowerCase()
@@ -156,15 +171,22 @@ class Evaluator {
     let total = ZERO
     const uses: Evaluated['uses'] = []
     let roundsWhole = false
+    // Empty when it reads columns or cells and every one of them is empty (a number is not data).
+    let reads = false
+    let anyValue = false
     for (const term of terms) {
       const part = this.operand(term)
-      if (part.problem) return { value: NONE, uses, roundsWhole, problem: part.problem }
+      if (part.problem) return { value: NONE, uses, roundsWhole, empty: true, problem: part.problem }
       uses.push(...part.uses)
       roundsWhole ||= part.roundsWhole
+      if (term.of.type !== 'number') {
+        reads = true
+        anyValue ||= !part.empty
+      }
       let value = part.value
       if (term.times !== null) {
         const product = multiply(value, parseDecimal(term.times)!)
-        if (!product) return { value: NONE, uses, roundsWhole, problem: 'too-precise' }
+        if (!product) return { value: NONE, uses, roundsWhole, empty: true, problem: 'too-precise' }
         value = product
       }
       if (term.round === 'whole') {
@@ -175,32 +197,29 @@ class Evaluator {
       }
       total = term.sign === 1 ? add(total, value) : subtract(total, value)
     }
-    return { value: { kind: 'number', value: total }, uses, roundsWhole, problem: null }
+    return { value: { kind: 'number', value: total }, uses, roundsWhole, empty: reads && !anyValue, problem: null }
   }
 
-  private operand(term: Term): { value: Decimal; uses: Evaluated['uses']; roundsWhole: boolean; problem: CellProblem | null } {
+  private operand(term: Term): { value: Decimal; uses: Evaluated['uses']; roundsWhole: boolean; empty: boolean; problem: CellProblem | null } {
     const of = term.of
-    if (of.type === 'number') return { value: parseDecimal(of.value)!, uses: [], roundsWhole: false, problem: null }
+    const wrong = (problem: CellProblem, uses: Evaluated['uses'] = [], roundsWhole = false) => ({ value: ZERO, uses, roundsWhole, empty: true, problem })
+    if (of.type === 'number') return { value: parseDecimal(of.value)!, uses: [], roundsWhole: false, empty: false, problem: null }
     if (of.type === 'column') {
       const number = asNumber(valueOf(this.employee?.[of.key]))
-      if (number === null) return { value: ZERO, uses: [], roundsWhole: false, problem: 'not-a-number' }
+      if (number === null) return wrong('not-a-number')
       const value = number === 'none' ? ZERO : number
-      return { value, uses: number === 'none' ? [] : [{ key: of.key, value }], roundsWhole: false, problem: null }
+      return { value, uses: number === 'none' ? [] : [{ key: of.key, value }], roundsWhole: false, empty: number === 'none', problem: null }
     }
     const found = this.where.get(of.id)
-    if (!found) return { value: ZERO, uses: [], roundsWhole: false, problem: 'unknown-cell' }
-    if (found.kind === 'employee' && this.employee === null) {
-      return { value: ZERO, uses: [], roundsWhole: false, problem: 'employee-cell-in-employer-row' }
-    }
-    if (this.stack.includes(of.id)) {
-      return { value: ZERO, uses: [], roundsWhole: false, problem: this.stack.at(-1) === of.id ? 'self-reference' : 'loop' }
-    }
+    if (!found) return wrong('unknown-cell')
+    if (found.kind === 'employee' && this.employee === null) return wrong('employee-cell-in-employer-row')
+    if (this.stack.includes(of.id)) return wrong(this.stack.at(-1) === of.id ? 'self-reference' : 'loop')
     const referred = this.cell(found.cell)
-    if (referred.problem) return { value: ZERO, uses: referred.uses, roundsWhole: referred.roundsWhole, problem: referred.problem === 'self-reference' ? 'loop' : referred.problem }
+    if (referred.problem) return wrong(referred.problem === 'self-reference' ? 'loop' : referred.problem, referred.uses, referred.roundsWhole)
     // The value as written in that cell of the file (a figure already rounded there stays rounded).
     const number = found.cell.format.type === 'number' ? parseDecimal(referred.text) : asNumber(referred.value)
-    if (number === null) return { value: ZERO, uses: referred.uses, roundsWhole: referred.roundsWhole, problem: 'not-a-number' }
-    return { value: number === 'none' ? ZERO : number, uses: referred.uses, roundsWhole: referred.roundsWhole, problem: null }
+    if (number === null) return wrong('not-a-number', referred.uses, referred.roundsWhole)
+    return { value: number === 'none' ? ZERO : number, uses: referred.uses, roundsWhole: referred.roundsWhole, empty: referred.empty || number === 'none', problem: null }
   }
 }
 
@@ -229,6 +248,7 @@ export function buildFile(body: TemplateBody, context: FileContext, employees: r
   const lines: string[][] = []
   const problems: Problem[] = []
   const halfNotes: HalfNote[] = []
+  const missing: MissingValue[] = []
   const written: number[] = []
   const leftOut: number[] = []
   const noPay = body.noPay
@@ -242,6 +262,7 @@ export function buildFile(body: TemplateBody, context: FileContext, employees: r
       const result = evaluator.cell(cell)
       const name = cellName(rowIndex, column)
       if (result.problem) problems.push({ cell: name, heading: headingOf(body, rowIndex, column), employee: position, kind: result.problem })
+      if (cell.required && isMissing(cell, result)) missing.push({ cell: name, heading: headingOf(body, rowIndex, column), employee: position })
       if (position !== null && result.roundsWhole) {
         for (const use of result.uses) {
           const key = `${use.key}`
@@ -259,7 +280,19 @@ export function buildFile(body: TemplateBody, context: FileContext, employees: r
     else if (row.kind === 'employer') lines.push(line(rowIndex, row.cells, null, null))
     else for (const index of written) lines.push(line(rowIndex, row.cells, employees[index], index))
   })
-  return { lines, written, leftOut, problems: dedupe(problems), halfNotes }
+  return { lines, written, leftOut, problems: dedupe(problems), halfNotes, missing }
+}
+
+/**
+ * Whether a required cell comes out empty. Text and dates: written empty. Numbers: no value
+ * (written 0, as always), or written 0 when "0 counts as missing" is ticked for that cell.
+ */
+function isMissing(cell: Cell, result: Evaluated): boolean {
+  if (result.text.trim() === '') return true
+  if (cell.format.type !== 'number') return false
+  if (result.empty) return true
+  const written = parseDecimal(result.text)
+  return cell.zeroMissing === true && written !== null && isZero(written)
 }
 
 /** A problem with the template itself is found once per employee: list it once. */

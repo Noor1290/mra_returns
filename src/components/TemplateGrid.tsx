@@ -78,10 +78,11 @@ export function TemplateGrid({
                       type="button"
                       className="grid-cell"
                       aria-pressed={isSelected}
-                      aria-label={`Cell ${cellName(rowIndex, column)}${heading ? `, ${heading}` : ''}: ${cell ? sourceSummary(cell.source) : 'Empty'}`}
+                      aria-label={`Cell ${cellName(rowIndex, column)}${heading ? `, ${heading}` : ''}: ${cell ? sourceSummary(cell.source) : 'Empty'}${cell?.required ? ', required' : ''}`}
                       onClick={() => onSelect({ row: rowIndex, column })}
                     >
                       <span className="grid-source">{cell ? sourceSummary(cell.source) : '\u00a0'}</span>
+                      {cell?.required && <span className="grid-required">Required</span>}
                       {preview !== undefined && <span className="grid-value num">{preview === '' ? '\u00a0' : preview}</span>}
                     </button>
                   </td>

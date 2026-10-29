@@ -1,18 +1,21 @@
 import { CircleAlert, Download, FlaskConical } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { FailurePanel } from '../components/FailurePanel'
+import { DEMO_COMPANIES, demoBatchSource } from '../data/demoBatch'
 import { DEMO_RUN } from '../data/demoRun'
+import type { BatchSource } from '../lib/batch'
 import { formatPeriod, lastMonth, recentMonths } from '../lib/dates'
 import { failure, type Failure, type HubPort } from '../lib/hubWire'
-import { askForCompanies, listCompanies, loadRun, type SavedRun } from '../lib/runStore'
+import { askForCompanies, hubBatchSource, listCompanies, loadRun, openProfile, type BatchCompany, type SavedRun } from '../lib/runStore'
 import { demoTemplateStore, hubTemplateStore, type TemplateStore } from '../lib/templateStore'
+import { BatchPanel } from './BatchPanel'
 import { ExportPanel } from './ExportPanel'
 import { TemplatesPanel } from './TemplatesPanel'
 
 type Companies =
   | { status: 'loading' }
   | { status: 'failed'; failure: Failure }
-  | { status: 'loaded'; selectedBrn: string; selectedName: string; isAdmin: boolean }
+  | { status: 'loaded'; selectedBrn: string; selectedName: string; isAdmin: boolean; companies: BatchCompany[] }
 
 type Fetch =
   | { status: 'idle' }
@@ -33,8 +36,18 @@ const shown = (value: unknown) => (value === undefined || value === null ? '' : 
 
 type Tab = 'files' | 'templates'
 
+/** Several companies at once: where their runs come from, and which companies may be chosen. */
+interface Batch {
+  source: BatchSource
+  companies: BatchCompany[]
+  months: string[]
+  initialPeriod: string
+  /** Opens a company's Company profile in the dashboard; null for the fake sample. */
+  openProfile: ((brn: string) => Promise<Failure | null>) | null
+}
+
 /** The two parts of the app: making the files, and the templates they are made with. */
-function Workspace({ store, company, run, filesPart }: { store: TemplateStore; company: { name: string; brn: string }; run: SavedRun | null; filesPart: ReactNode }) {
+function Workspace({ store, company, run, filesPart, batch }: { store: TemplateStore; company: { name: string; brn: string }; run: SavedRun | null; filesPart: ReactNode; batch: Batch }) {
   const [tab, setTab] = useState<Tab>('files')
   // A template saved, made or removed: the files are made again from the templates.
   const [version, setVersion] = useState(0)
@@ -62,7 +75,17 @@ function Workspace({ store, company, run, filesPart }: { store: TemplateStore; c
       </div>
       <div role="tabpanel" id="panel-files" aria-labelledby="tab-files" hidden={tab !== 'files'} className="flex flex-col gap-4">
         {filesPart}
-        {run?.run && <ExportPanel store={store} run={run} version={version} />}
+        {run?.run && <ExportPanel store={store} run={run} version={version} onOpenProfile={batch.openProfile ? () => batch.openProfile!(run.brn) : null} />}
+        <BatchPanel
+          store={store}
+          source={batch.source}
+          companies={batch.companies}
+          selectedBrn={company.brn}
+          months={batch.months}
+          initialPeriod={batch.initialPeriod}
+          version={version}
+          openProfile={batch.openProfile}
+        />
       </div>
       <div role="tabpanel" id="panel-templates" aria-labelledby="tab-templates" hidden={tab !== 'templates'}>
         {/* Mounted only when shown: the list is read from the dashboard when the tab opens. */}
@@ -81,6 +104,7 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
   const [fetched, setFetched] = useState<Fetch>({ status: 'idle' })
   const selectedBrn = companies.status === 'loaded' ? companies.selectedBrn : null
   const hubStore = useMemo(() => (selectedBrn ? hubTemplateStore(port, selectedBrn) : null), [port, selectedBrn])
+  const hubBatch = useMemo(() => (selectedBrn ? hubBatchSource(port, selectedBrn) : null), [port, selectedBrn])
   // Opened on its own: fake templates in memory, made again each time the sample is opened.
   const [demoStore, setDemoStore] = useState<TemplateStore | null>(null)
 
@@ -97,6 +121,7 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
         selectedName: answer.selectedName,
         // The dashboard lists only the companies the user is an admin of.
         isAdmin: answer.companies.some((company) => company.selected),
+        companies: answer.companies,
       })
     })
     return () => {
@@ -154,6 +179,7 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
             store={demoStore}
             company={{ name: DEMO_RUN.name, brn: DEMO_RUN.brn }}
             run={fetched.run}
+            batch={{ source: demoBatchSource(demoStore), companies: DEMO_COMPANIES, months, initialPeriod: DEMO_RUN.period, openProfile: null }}
             filesPart={
               <section className="card rise-in" aria-labelledby="sample-title">
                 <div className="card-header">
@@ -252,13 +278,20 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
     </section>
   )
 
-  if (!(connected && companies.status === 'loaded' && companies.isAdmin && hubStore)) return runCard
+  if (!(connected && companies.status === 'loaded' && companies.isAdmin && hubStore && hubBatch)) return runCard
   return (
     <Workspace
       store={hubStore}
       company={{ name: companies.selectedName, brn: companies.selectedBrn }}
       run={fetched.status === 'done' ? fetched.run : null}
       filesPart={runCard}
+      batch={{
+        source: hubBatch,
+        companies: companies.companies,
+        months,
+        initialPeriod: lastMonth(),
+        openProfile: (brn) => openProfile(port, companies.selectedBrn, brn),
+      }}
     />
   )
 }

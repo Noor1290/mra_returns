@@ -157,6 +157,17 @@ export function withStandardCells(body: TemplateBody, layout: Layout): TemplateB
   }
 }
 
+/** The template with these cells marked "Required". */
+export function withRequired(body: TemplateBody, ids: readonly string[]): TemplateBody {
+  return {
+    ...body,
+    rows: body.rows.map((row) => (row.kind === 'copy' ? row : { ...row, cells: row.cells.map((cell) => (cell && ids.includes(cell.id) ? { ...cell, required: true as const } : cell)) })),
+  }
+}
+
+/** The fake sample's templates: the standard ones, with the ERN, declarant, ID and surname required. */
+export const demoTemplate = (layout: Layout) => withRequired(standardTemplate(layout), ['m0', 'm6', 'e0', 'e1'])
+
 /** A complete template of either file, as if uploaded from the MRA portal and set up. */
 export function standardTemplate(layout: Layout): TemplateBody {
   const headings = layout === 'csg' ? CSG_HEADINGS : PRGF_HEADINGS

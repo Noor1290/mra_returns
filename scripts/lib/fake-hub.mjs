@@ -49,6 +49,8 @@ export function createFakeHub() {
     asked: [],
     /** Every request seen, in order. */
     requests: [],
+    /** The companies whose Company profile the app asked the dashboard to show (open-profile), by BRN. */
+    opened: [],
     /** The MRA details of each company (mra-batch load), by BRN, and the user's email. */
     mra: { C1234567: { ern: '001234', telephone: '2000000', mobile: '52000000', declarant: 'JANE SAMPLE' } },
     email: 'returns@example.org',
@@ -188,6 +190,13 @@ export function createFakeHub() {
       if (state.answer === 'locked' || !state.unlocked) return refuse('locked', 'The dashboard is locked.')
       state.allowed = { period: params.period, brns: chosen.map((one) => norm(one.brn)) }
       return { ok: true, dataType: 'mra-batch', rows: chosen.map((one) => ({ brn: one.brn, name: one.name })), meta: meta(params.period) }
+    }
+    if (params.action === 'open-profile') {
+      if (!params.brn || !params.company_brn) return refuse('invalid', 'The request is not valid.')
+      const target = admins().find((one) => norm(one.brn) === norm(params.company_brn))
+      if (!target) return refuse('forbidden', 'Only an admin of that company can open its MRA details.')
+      state.opened.push(target.brn)
+      return { ok: true, dataType: 'mra-batch', rows: [], meta: meta() }
     }
     if (params.action === 'load') {
       if (!params.brn || !isMonth(params.period) || !params.company_brn) return refuse('invalid', 'The request is not valid.')

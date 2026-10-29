@@ -70,7 +70,7 @@ try {
   const embedded = await embeddedContext(browser)
   const frameOf = (opened) => opened.page.frames().find((frame) => frame.url().includes('/mra_returns/'))
   const getRun = async (opened, month) => {
-    await opened.app.getByLabel('Month').selectOption({ label: month })
+    await opened.app.getByLabel('Month').first().selectOption({ label: month })
     await opened.app.getByRole('button', { name: 'Get the saved run' }).click()
   }
 
@@ -100,6 +100,43 @@ try {
     await record(`dashboard: refused (${answer})`, frameOf(main))
   }
   await main.page.close()
+
+  // Several companies inside the dashboard: a template used by ABC Co Ltd and DEF Ltd, which has
+  // no August run and no MRA details (the way to its Company profile is shown).
+  const batched = await openEmbedded(embedded.context, (hub) => {
+    const text = { type: 'text', capitals: false, tidy: false }
+    hub.state.templates.push({
+      template_id: '00000000-0000-4000-8000-00000000c560',
+      name: 'MRA CSG (PACO)',
+      revision: 1,
+      history: [],
+      body: {
+        format: 'mra-returns-template',
+        version: 1,
+        width: 2,
+        rows: [
+          { kind: 'copy', cells: ['Employer Registration Number', 'Employee ID'] },
+          { kind: 'employer', cells: [{ id: 'm0', source: { type: 'company', field: 'ern' }, format: text, required: true }, null] },
+          { kind: 'employee', cells: [null, { id: 'e0', source: { type: 'employee', key: 'ID', group: 'identity' }, format: text, required: true }] },
+        ],
+        settings: { encoding: 'windows-1252', lineEnding: 'crlf', separator: ',', quotes: 'never', pad: true },
+        fileName: { pattern: 'CSG {MONTH} {YYYY} {COMPANY}', capitals: true },
+        noPay: null,
+      },
+      companies: [
+        { brn: 'C1234567', own_values: {}, values_revision: 1 },
+        { brn: 'C3333333', own_values: {}, values_revision: 1 },
+      ],
+    })
+  })
+  const batchCard = batched.app.getByTestId('batch')
+  await batchCard.getByRole('button', { name: 'Make the zip' }).waitFor()
+  await record('dashboard: several companies', frameOf(batched))
+  await batchCard.getByLabel('Month').selectOption({ label: 'August 2026' })
+  await batchCard.getByRole('button', { name: 'Make the zip' }).click()
+  await batchCard.getByTestId('batch-report').waitFor()
+  await record('dashboard: several companies, report', frameOf(batched))
+  await batched.page.close()
 
   const member = await openEmbedded(embedded.context, (hub) => {
     hub.state.selected = 'C2222222'

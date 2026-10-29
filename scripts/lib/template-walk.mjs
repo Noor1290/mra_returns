@@ -1,9 +1,11 @@
 // Walks the app opened on its own, with the fake sample, through every screen and dialog of the
 // files and templates (FAKE data only), and calls visit(name) in each state. Used by the text
-// check (to record the texts) and the accessibility check (names and contrast).
+// check (to record the texts) and the accessibility check (names and contrast). Gives back the
+// zip of the fake companies it downloaded.
 import { FAKE_CSG_UPLOAD } from './fake-upload.mjs'
 
 export async function walkTemplates(page, visit) {
+  let zip = null
   const what = () => page.getByRole('combobox', { name: /^What goes in it/ })
   const openTemplate = async (name) => {
     await page.getByRole('button', { name: new RegExp(`^${name}`) }).click()
@@ -27,6 +29,33 @@ export async function walkTemplates(page, visit) {
   await Promise.all([page.waitForEvent('download'), page.waitForEvent('download'), page.getByRole('button', { name: /^Download 2 files/ }).click()])
   await page.getByTestId('downloaded').waitFor()
   await visit('files: downloaded')
+
+  // Several companies at once (fake companies): the choices, the progress, the report with its
+  // required values, MRA details missing and .50 list, the question before the zip, the zip.
+  const batch = page.getByTestId('batch')
+  await batch.getByRole('button', { name: 'Make the zip' }).waitFor()
+  await visit('batch: the choices')
+  await batch.getByLabel('Search companies').fill('no such company')
+  await visit('batch: no company matches')
+  await batch.getByLabel('Search companies').fill('')
+  await batch.getByRole('button', { name: 'Clear' }).click()
+  await visit('batch: none chosen')
+  await batch.getByRole('button', { name: 'Select all' }).click()
+  await batch.getByRole('button', { name: 'Make the zip' }).click()
+  await batch.getByTestId('batch-progress').waitFor()
+  await visit('batch: progress')
+  await batch.getByTestId('batch-report').waitFor()
+  for (const summary of await batch.getByTestId('batch-half-notes').locator('summary').all()) await summary.click()
+  await visit('batch: report')
+  await batch.getByRole('button', { name: 'Download the zip' }).click()
+  await page.getByTestId('required-dialog').waitFor()
+  await visit('dialog: required values')
+  await page.getByRole('button', { name: 'Go back' }).click()
+  await batch.getByRole('button', { name: 'Download the zip' }).click()
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export anyway' }).click()])
+  zip = download
+  await batch.getByTestId('batch-downloaded').waitFor()
+  await visit('batch: downloaded')
 
   // Templates: the list, then a template with no cell chosen.
   await page.getByRole('tab', { name: 'Templates' }).click()
@@ -59,7 +88,13 @@ export async function walkTemplates(page, visit) {
     await page.getByRole('combobox', { name: 'Written as' }).selectOption(type)
     await visit(`cell: written as ${type}`)
   }
+  await page.getByRole('checkbox', { name: 'Required' }).check()
+  await page.getByRole('checkbox', { name: '0 counts as missing' }).check()
+  await visit('cell: required, a number')
   await undo()
+  // An employer cell: its own words for Required.
+  await page.getByRole('button', { name: /^Cell A3/ }).click()
+  await visit('cell: required, the employer row')
 
   // Saved, then the history and a version restored.
   await page.getByRole('textbox', { name: 'Template name' }).fill('MRA CSG (PACO) copy')
@@ -112,4 +147,6 @@ export async function walkTemplates(page, visit) {
   await page.getByTestId('template-editor').waitFor()
   await page.getByRole('button', { name: /^Cell A3/ }).click()
   await visit('upload: setting up the cells')
+  // The zip of the fake companies, for a look inside it.
+  return { zip }
 }

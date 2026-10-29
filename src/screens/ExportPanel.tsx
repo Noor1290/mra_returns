@@ -1,18 +1,20 @@
 import { CircleAlert, Download, FileCheck2, TriangleAlert } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { MissingDetails, RequiredDialog, RequiredList, type RequiredGroup } from '../components/Alerts'
 import { FailurePanel } from '../components/FailurePanel'
+import { missingDetails } from '../lib/batch'
 import { formatPeriod } from '../lib/dates'
 import type { Failure } from '../lib/hubWire'
-import { makeReturnFile, type ReturnFile } from '../lib/returnFile'
+import { EXCEL_REMINDER, requiredLines } from '../lib/report'
+import { makeReturnFile } from '../lib/returnFile'
 import type { SavedRun } from '../lib/runStore'
-import type { LoadedTemplate, TemplateStore } from '../lib/templateStore'
+import type { TemplateStore } from '../lib/templateStore'
 import { employeeName, halfNoteText, problemText, writeProblemText } from '../lib/wording'
+import { useTemplates } from './useTemplates'
 
-type Loaded = { status: 'loading' } | { status: 'failed'; failure: Failure } | { status: 'loaded'; templates: LoadedTemplate[] }
-
-/** Hands the file to the browser as a download. Made in memory; nothing is kept. */
-function download(file: ReturnFile) {
-  const url = URL.createObjectURL(new Blob([file.bytes as Uint8Array<ArrayBuffer>], { type: 'text/csv' }))
+/** Hands a file to the browser as a download. Made in memory; nothing is kept. */
+export function download(file: { fileName: string; bytes: Uint8Array }, type = 'text/csv') {
+  const url = URL.createObjectURL(new Blob([file.bytes as Uint8Array<ArrayBuffer>], { type }))
   const link = document.createElement('a')
   link.href = url
   link.download = file.fileName
@@ -22,32 +24,18 @@ function download(file: ReturnFile) {
   setTimeout(() => URL.revokeObjectURL(url), 1_000)
 }
 
-/** One company's return files for the month of its saved run. */
-export function ExportPanel({ store, run, version }: { store: TemplateStore; run: SavedRun; version: number }) {
-  const [loaded, setLoaded] = useState<Loaded>({ status: 'loading' })
+/**
+ * One company's return files for the month of its saved run. `onOpenProfile` opens its Company
+ * profile in the dashboard (null for the fake sample).
+ */
+export function ExportPanel({ store, run, version, onOpenProfile }: { store: TemplateStore; run: SavedRun; version: number; onOpenProfile: (() => Promise<Failure | null>) | null }) {
   const [unticked, setUnticked] = useState<Set<string>>(new Set())
   const [done, setDone] = useState<string[] | null>(null)
-  const [reload, setReload] = useState(0)
+  const [confirming, setConfirming] = useState<RequiredGroup[] | null>(null)
+  const { loaded, retry } = useTemplates(store, version)
 
-  useEffect(() => {
-    let current = true
-    setLoaded({ status: 'loading' })
-    setDone(null)
-    void (async () => {
-      const list = await store.list()
-      if (!list.ok) return current && setLoaded({ status: 'failed', failure: list.failure })
-      const templates: LoadedTemplate[] = []
-      for (const summary of list.value) {
-        const one = await store.load(summary.template_id)
-        if (!one.ok) return current && setLoaded({ status: 'failed', failure: one.failure })
-        templates.push(one.value)
-      }
-      if (current) setLoaded({ status: 'loaded', templates })
-    })()
-    return () => {
-      current = false
-    }
-  }, [store, version, reload])
+  // The templates are read again: what was downloaded may no longer be what is shown.
+  useEffect(() => setDone(null), [store, version])
 
   // The files, made in memory from the run and the templates.
   const files = useMemo(
@@ -59,6 +47,11 @@ export function ExportPanel({ store, run, version }: { store: TemplateStore; run
   )
   const chosen = files.filter(({ template }) => !unticked.has(template.template_id))
   const month = formatPeriod(run.period)
+  const details = loaded.status === 'loaded' ? missingDetails(loaded.templates, run) : []
+  const downloadChosen = () => {
+    for (const { file } of chosen) download(file)
+    setDone(chosen.map(({ file }) => file.fileName))
+  }
 
   return (
     <section className="card rise-in" aria-labelledby="export-title" data-testid="export">
@@ -70,10 +63,9 @@ export function ExportPanel({ store, run, version }: { store: TemplateStore; run
       <div className="flex flex-col gap-4 p-5">
         <div className="panel tone-warn" role="note" data-testid="excel-reminder">
           <TriangleAlert aria-hidden="true" />
-          <p className="m-0 text-sm">
-            Upload each file to the MRA portal exactly as it is downloaded. Do not open it in Excel and save it again first: Excel changes dates and drops leading zeros.
-          </p>
+          <p className="m-0 text-sm">{EXCEL_REMINDER}</p>
         </div>
+        {details.length > 0 && <MissingDetails fields={details} another={false} onOpen={onOpenProfile} />}
 
         {loaded.status === 'loading' && (
           <div role="status" className="flex flex-col gap-2">
@@ -81,7 +73,7 @@ export function ExportPanel({ store, run, version }: { store: TemplateStore; run
             <div className="skeleton h-16 w-full" />
           </div>
         )}
-        {loaded.status === 'failed' && <FailurePanel failure={loaded.failure} onRetry={() => setReload((n) => n + 1)} />}
+        {loaded.status === 'failed' && <FailurePanel failure={loaded.failure} onRetry={retry} />}
         {loaded.status === 'loaded' && files.length === 0 && (
           <div className="panel" data-testid="export-no-templates">
             <CircleAlert aria-hidden="true" />
@@ -135,6 +127,15 @@ export function ExportPanel({ store, run, version }: { store: TemplateStore; run
                   </div>
                 </div>
               )}
+              {file.built.missing.length > 0 && (
+                <div className="panel tone-warn" role="note" data-testid="export-required">
+                  <CircleAlert aria-hidden="true" />
+                  <div className="flex flex-col gap-1">
+                    <p className="m-0 font-semibold">Required values that are empty</p>
+                    <RequiredList groups={[{ title: run.name, lines: requiredLines(file, run.employees) }]} />
+                  </div>
+                </div>
+              )}
               {halfNotes.length > 0 && (
                 <details className="rounded-lg border border-line p-3 text-sm" data-testid="half-notes">
                   <summary className="cursor-pointer font-semibold">
@@ -163,8 +164,11 @@ export function ExportPanel({ store, run, version }: { store: TemplateStore; run
               className="btn btn-primary"
               disabled={chosen.length === 0}
               onClick={() => {
-                for (const { file } of chosen) download(file)
-                setDone(chosen.map(({ file }) => file.fileName))
+                const groups = chosen
+                  .filter(({ file }) => file.built.missing.length > 0)
+                  .map(({ template, file }) => ({ title: `${run.name}, ${template.name}`, lines: requiredLines(file, run.employees) }))
+                if (groups.length > 0) setConfirming(groups)
+                else downloadChosen()
               }}
             >
               <Download aria-hidden="true" />
@@ -179,6 +183,16 @@ export function ExportPanel({ store, run, version }: { store: TemplateStore; run
           </div>
         )}
       </div>
+      {confirming && (
+        <RequiredDialog
+          groups={confirming}
+          onClose={() => setConfirming(null)}
+          onExport={() => {
+            setConfirming(null)
+            downloadChosen()
+          }}
+        />
+      )}
     </section>
   )
 }

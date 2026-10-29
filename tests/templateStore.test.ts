@@ -5,7 +5,7 @@
 // details in the saved run (mra-batch load). Fake data only.
 import { describe, expect, it } from 'vitest'
 import { createFakeHub } from '../scripts/lib/fake-hub.mjs'
-import { standardTemplate } from '../src/data/mraLayouts'
+import { demoTemplate, standardTemplate } from '../src/data/mraLayouts'
 import type { HubPort } from '../src/lib/hubWire'
 import { askForCompanies, loadRun } from '../src/lib/runStore'
 import { demoTemplateStore, DEMO_TEMPLATE_IDS, hubTemplateStore } from '../src/lib/templateStore'
@@ -139,7 +139,7 @@ describe('the fake templates of the sample (app opened on its own)', () => {
     const store = demoTemplateStore()
     expect(await store.list()).toMatchObject({ ok: true, value: [{ name: 'MRA CSG (PACO)' }, { name: 'MRA PRGF' }] })
     const loaded = await store.load(DEMO_TEMPLATE_IDS.csg)
-    expect(loaded.ok && loaded.value.body).toEqual(standardTemplate('csg'))
+    expect(loaded.ok && loaded.value.body).toEqual(demoTemplate('csg'))
     expect(await store.save({ id: DEMO_TEMPLATE_IDS.csg, name: 'MRA CSG', body: standardTemplate('csg'), expectedRevision: 3 })).toMatchObject({ ok: false, failure: { kind: 'stale' } })
     expect(await store.detach(DEMO_TEMPLATE_IDS.prgf, 1)).toEqual({ ok: true, value: { deleted: true } })
   })

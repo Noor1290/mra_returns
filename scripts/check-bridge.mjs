@@ -19,6 +19,18 @@ const check = (condition, text) => {
 const shots = process.env.MRA_SHOTS
 const e = String.fromCharCode(0xe9)
 
+/** The names in a zip, from its central directory. */
+function zipNames(zip) {
+  const end = zip.length - 22
+  const names = []
+  for (let at = zip.readUInt32LE(end + 16), n = zip.readUInt16LE(end + 10); n > 0; n--) {
+    const length = zip.readUInt16LE(at + 28)
+    names.push(zip.subarray(at + 46, at + 46 + length).toString('utf8'))
+    at += 46 + length + zip.readUInt16LE(at + 30) + zip.readUInt16LE(at + 32)
+  }
+  return names
+}
+
 
 const browser = await chromium.launch()
 try {
@@ -28,7 +40,7 @@ try {
   }
   const requests = (page) => page.evaluate(() => window.hub.state.requests.map((params) => params.action))
   const getRun = async (app, month) => {
-    await app.getByLabel('Month').selectOption({ label: month })
+    await app.getByLabel('Month').first().selectOption({ label: month })
     await app.getByRole('button', { name: 'Get the saved run' }).click()
   }
 
@@ -106,6 +118,7 @@ try {
   check((await app.getByTestId('cell-editor').textContent()).includes('In the uploaded file: 009999'), 'The uploaded text of a cell is not shown as a hint.')
   await app.getByRole('combobox', { name: /^What goes in it/ }).selectOption('company')
   await app.getByRole('combobox', { name: /^Detail/ }).selectOption('ern')
+  await app.getByRole('checkbox', { name: 'Required' }).check()
   await shot(page, '7-template-editor')
   await app.getByRole('button', { name: 'Save', exact: true }).click()
   await app.getByText('Saved in the dashboard.').waitFor()
@@ -114,6 +127,7 @@ try {
   const stored = JSON.stringify(saves[0] ?? {})
   for (const text of ['UPLOADED', 'EXAMPLE', '009999', 'Y9999999']) check(!stored.includes(text), `The saved template holds "${text}" from the uploaded file's employer or employee rows.`)
   check(stored.includes(`G${e}n${e}ralis${e}e`) && stored.includes('Frequency '), 'The headings were not kept exactly.')
+  check(stored.includes('"required":true') && !stored.includes('"required":false'), 'The Required tick was not saved, or saved when off.')
   // Removing it from its only company asks first and says it cannot be undone.
   await app.getByRole('button', { name: 'Remove from this company' }).click()
   const removeText = await app.getByTestId('remove-text').textContent()
@@ -134,6 +148,45 @@ try {
   check(lines[4] === `X0000000000001${empty(18)}` && lines[6] === `X0000000000003${empty(18)}` && lines[7] === '' && lines.length === 8, `The employee lines are ${JSON.stringify(lines.slice(4))}`)
   await shot(page, '9-export')
   console.log('  templates: uploaded, set up, saved without the example rows, removal asks first, file made and downloaded')
+
+  // 5b. Several companies: DEF Ltd uses the template too, has an August run and no MRA details.
+  // ONE question for both, one load each, then the zip, with the required ERN asked about first.
+  await page.evaluate(() => {
+    const def = window.hub.state.companies.find((one) => one.brn === 'C3333333')
+    def.runs['2026-08'] = [{ ID: 'X0000000000021', Surname: 'SAMPLE', 'Other names': 'DEE', 'Gross Pay': 20000 }]
+    window.hub.state.templates[0].companies.push({ brn: 'C3333333', own_values: {}, values_revision: 1 })
+    window.hub.state.asked = []
+    window.hub.state.requests = []
+  })
+  const batch = app.getByTestId('batch')
+  await batch.getByLabel('Month').selectOption({ label: 'August 2026' })
+  check((await batch.getByRole('checkbox', { name: /BRN C2222222/ }).count()) === 0, 'A company the user is only a member of is offered.')
+  await batch.getByRole('button', { name: 'Make the zip' }).click()
+  await batch.getByTestId('batch-report').waitFor()
+  const batchAsked = await page.evaluate(() => window.hub.state.asked)
+  check(JSON.stringify(batchAsked) === '[{"period":"2026-08","names":["ABC Co Ltd","DEF Ltd"]}]', `The batch was not one question for both companies: ${JSON.stringify(batchAsked)}`)
+  check(JSON.stringify(await requests(page)) === '["ask","load","load"]', 'The batch was not one question and one load per company.')
+  check((await batch.getByTestId('batch-counts').textContent()) === 'Made: 2 files. Skipped: 0.', 'The batch report does not count the files.')
+  check((await batch.getByTestId('missing-details').textContent()).includes('MRA details missing: Employer Registration Number (ERN).'), 'The MRA details missing are not listed.')
+  await batch.getByTestId('batch-report').scrollIntoViewIfNeeded()
+  await shot(page, '10-batch-report')
+  await batch.getByRole('button', { name: 'Download the zip' }).click()
+  const required = await app.getByTestId('required-dialog').textContent()
+  check(required.includes('Employer row: A3 (Employer Registration Number) is required and has no value.'), `The required ERN is not asked about: ${required}`)
+  await shot(page, '11-required')
+  const [zipDownload] = await Promise.all([page.waitForEvent('download'), app.getByRole('button', { name: 'Export anyway' }).click()])
+  check(zipDownload.suggestedFilename() === 'MRA AUGUST 2026.zip', `The zip is called ${zipDownload.suggestedFilename()}.`)
+  const names = zipNames(readFileSync(await zipDownload.path()))
+  const folder = 'CSG AUGUST 2026 (2)'
+  check(
+    JSON.stringify(names) === JSON.stringify([`${folder}/`, `${folder}/CSG AUGUST 2026 ABC CO LTD.csv`, `${folder}/CSG AUGUST 2026 DEF LTD.csv`, 'Report.txt']),
+    `The zip holds ${JSON.stringify(names)}`,
+  )
+  // DEF Ltd is not the selected company: opening its profile is asked of the dashboard.
+  await batch.getByRole('button', { name: 'Open its Company profile' }).click()
+  await page.waitForFunction(() => window.hub.state.opened.length === 1)
+  check(JSON.stringify(await page.evaluate(() => window.hub.state.opened)) === '["C3333333"]', "The Company profile asked for is not DEF Ltd's.")
+  console.log('  several companies: one question, a load each, required values asked about, one zip, the profile opened in the dashboard')
 
   // 6. Every message went to the exact dashboard origin, from this app.
   const sent = await page.evaluate(() => window.log.map((m) => ({ type: m.type, from: m.from, to: m.to, origin: m.origin, dataType: m.payload?.dataType })))

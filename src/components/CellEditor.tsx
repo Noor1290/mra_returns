@@ -49,6 +49,9 @@ function sourceFor(choice: Choice, keys: RunKeys): Source {
   }
 }
 
+/** The index of the employee row, or -1. */
+const employeeRowOf = (body: TemplateBody) => body.rows.findIndex((one) => one.kind === 'employee')
+
 /** A number typed by the user: "0.045", or "4.5%" for 0.045. Null when it is not one. */
 export function readRate(text: string): string | null {
   const trimmed = text.trim()
@@ -284,11 +287,21 @@ export function CellEditor(props: CellEditorProps) {
   const source = cell?.source ?? { type: 'empty' }
   const choice = choiceOf(source)
   const locked = !canChange
-  const setSource = (next: Source) => onChange({ id: cell?.id ?? newId(), source: next, format: cell?.format ?? defaultFormat(next.type) })
+  // "Required" stays when what goes in the cell changes; "0 counts as missing" only for a number.
+  const change = (next: Cell) => {
+    const { required: _required, zeroMissing: _zero, ...plain } = next
+    onChange({ ...plain, ...(cell?.required ? { required: true } : {}), ...(cell?.required && cell.zeroMissing && next.format.type === 'number' ? { zeroMissing: true } : {}) })
+  }
+  const setSource = (next: Source) => change({ id: cell?.id ?? newId(), source: next, format: cell?.format ?? defaultFormat(next.type) })
   const setChoice = (next: Choice) => {
     if (next === 'empty') return onChange(null)
     const nextSource = sourceFor(next, keys)
-    onChange({ id: cell?.id ?? newId(), source: nextSource, format: defaultFormat(nextSource.type) })
+    change({ id: cell?.id ?? newId(), source: nextSource, format: defaultFormat(nextSource.type) })
+  }
+  const setRequired = (required: boolean, zeroMissing: boolean) => {
+    if (!cell) return
+    const { required: _required, zeroMissing: _zero, ...plain } = cell
+    onChange({ ...plain, ...(required ? { required: true } : {}), ...(required && zeroMissing ? { zeroMissing: true } : {}) })
   }
 
   return (
@@ -406,7 +419,29 @@ export function CellEditor(props: CellEditorProps) {
         </div>
       )}
 
-      {cell && <FormatEditor format={cell.format} disabled={locked} onChange={(format) => onChange({ ...cell, format })} />}
+      {cell && <FormatEditor format={cell.format} disabled={locked} onChange={(format) => change({ ...cell, format })} />}
+
+      {cell && (
+        <fieldset className="flex flex-col gap-2 rounded-lg border border-line p-3 text-sm" data-testid="required">
+          <legend className="field-label px-1">Before export</legend>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={cell.required === true} disabled={locked} onChange={(event) => setRequired(event.target.checked, false)} />
+            Required
+          </label>
+          <span className="field-hint">
+            {row === employeeRowOf(body) ? 'Every employee for whom this cell comes out empty is listed before export.' : 'Listed before export when this cell comes out empty.'}
+          </span>
+          {cell.required && cell.format.type === 'number' && (
+            <>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={cell.zeroMissing === true} disabled={locked} onChange={(event) => setRequired(true, event.target.checked)} />
+                0 counts as missing
+              </label>
+              <span className="field-hint">A number with no value always counts as missing. With this ticked, a 0 does too.</span>
+            </>
+          )}
+        </fieldset>
+      )}
 
       <div className="flex flex-col gap-1 rounded-lg border border-line p-3" data-testid="cell-preview">
         <span className="field-label">In the file</span>

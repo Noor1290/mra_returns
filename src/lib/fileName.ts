@@ -26,9 +26,34 @@ export function fileNameFor(
     .replaceAll('{COMPANY}', company.name)
     .replaceAll('{BRN}', company.brn)
   if (pattern.capitals) name = name.toUpperCase()
-  name = [...name].filter(allowed).join('').replace(/\s+/g, ' ').trim()
-  // Windows also drops dots and spaces at the end of a name.
-  name = name.replace(/\.csv$/i, '').replace(/[. ]+$/, '')
+  name = cleanName(name).replace(/\.csv$/i, '').replace(/[. ]+$/, '')
   if (name === '' || RESERVED.test(name)) name = `MRA ${period}`
   return `${name.slice(0, 150)}.csv`
+}
+
+/**
+ * A name Windows accepts: no forbidden characters, no underscores (a space instead), single
+ * spaces, and no dots or spaces at the end (Windows drops them).
+ */
+function cleanName(name: string): string {
+  return [...name].filter(allowed).join('').replace(/_/g, ' ').replace(/\s+/g, ' ').trim().replace(/[. ]+$/, '')
+}
+
+/** A folder of the zip, named after a template: "MRA CSG (PACO)". */
+export function folderNameFor(templateName: string): string {
+  const name = cleanName(templateName).slice(0, 80)
+  return name === '' || RESERVED.test(name) ? 'Template' : name
+}
+
+/**
+ * The name again with " (2)", " (3)"... before its extension when it is already taken, ignoring
+ * capitals as Windows does. `taken` gets the name that is returned.
+ */
+export function uniqueName(name: string, taken: Set<string>): string {
+  const dot = name.lastIndexOf('.')
+  const [stem, extension] = dot > 0 ? [name.slice(0, dot), name.slice(dot)] : [name, '']
+  let candidate = name
+  for (let n = 2; taken.has(candidate.toLowerCase()); n++) candidate = `${stem} (${n})${extension}`
+  taken.add(candidate.toLowerCase())
+  return candidate
 }

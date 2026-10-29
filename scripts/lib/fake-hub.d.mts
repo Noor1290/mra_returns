@@ -16,6 +16,7 @@ export interface FakeHubState {
   allowed: { period: string; brns: string[] } | null
   asked: { period: string; names: string[] }[]
   requests: Record<string, unknown>[]
+  opened: string[]
   mra: Record<string, { ern: string; telephone: string; mobile: string; declarant: string }>
   email: string
   templates: FakeTemplate[]

@@ -17,7 +17,7 @@ export interface HubPort {
 }
 
 /** The refusal codes the dashboard uses for this app's requests. */
-export const REFUSAL_CODES = ['forbidden', 'wrong-company', 'invalid', 'unavailable', 'locked', 'denied', 'timeout', 'stale', 'not-found', 'too-large'] as const
+export const REFUSAL_CODES = ['forbidden', 'wrong-company', 'invalid', 'unavailable', 'no-company', 'locked', 'denied', 'timeout', 'stale', 'not-found', 'too-large'] as const
 export type RefusalCode = (typeof REFUSAL_CODES)[number]
 
 export type FailureKind =
@@ -60,6 +60,10 @@ const TEXT: Record<FailureKind, { title: string; detail: string }> = {
   invalid: {
     title: 'The dashboard refused the request',
     detail: 'The app and the dashboard may be on different versions.',
+  },
+  'no-company': {
+    title: "Your account isn't a member of any company in the dashboard yet.",
+    detail: 'Ask an admin to add you.',
   },
   unavailable: {
     title: 'The dashboard could not do this',
@@ -196,7 +200,8 @@ export async function ask<T>(
 
   const refusal = refusalSchema.safeParse(reply)
   if (refusal.success) {
-    const hubError = refusal.data.error?.trim() || null
+    // The app's own words say it all for an account with no company.
+    const hubError = refusal.data.code === 'no-company' ? null : refusal.data.error?.trim() || null
     // A refusal with no code (the bridge's own time-out, "not registered") counts as no answer.
     return { ok: false, failure: failure(isRefusalCode(refusal.data.code) ? refusal.data.code : 'no-answer', hubError) }
   }

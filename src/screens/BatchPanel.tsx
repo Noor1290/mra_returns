@@ -2,7 +2,7 @@ import { CircleAlert, FileArchive, FileCheck2, TriangleAlert } from 'lucide-reac
 import { useId, useMemo, useState } from 'react'
 import { BeforeDownload, MissingDetails, NotApproved, RequiredList, SumNotes } from '../components/Alerts'
 import { FailurePanel } from '../components/FailurePanel'
-import { madeFiles, runBatch, type BatchResult, type BatchSource, type CompanyOutcome, type Progress } from '../lib/batch'
+import { madeFiles, runBatch, startingChoice, type BatchResult, type BatchSource, type CompanyOutcome, type Progress } from '../lib/batch'
 import { formatPeriod } from '../lib/dates'
 import type { Failure } from '../lib/hubWire'
 import { batchZip, countsOf, downloadChecks, EXCEL_REMINDER, hasChecks, madeAt, requiredLines, sumLines, unwritableLines, type DownloadChecks } from '../lib/report'
@@ -37,7 +37,7 @@ export function BatchPanel({ store, source, companies, selectedBrn, months, init
   const { loaded, retry } = useTemplates(store, version)
   const [period, setPeriod] = useState(initialPeriod)
   const [untickedTemplates, setUntickedTemplates] = useState<Set<string>>(new Set())
-  const [chosen, setChosen] = useState<Set<string>>(() => new Set(companies.map((company) => company.brn)))
+  const [chosen, setChosen] = useState<Set<string>>(() => startingChoice(companies, selectedBrn))
   const [search, setSearch] = useState('')
   const [phase, setPhase] = useState<Phase>({ status: 'idle' })
   const [confirming, setConfirming] = useState<DownloadChecks | null>(null)

@@ -61,6 +61,11 @@ export interface Progress {
   name: string
 }
 
+/** The companies ticked when the screen opens: only the one selected in the dashboard. */
+export function startingChoice(companies: readonly { brn: string }[], selectedBrn: string): Set<string> {
+  return new Set(companies.filter((company) => normaliseBrn(company.brn) === normaliseBrn(selectedBrn)).map((company) => company.brn))
+}
+
 /** The company details these templates mark Required that the company does not have. */
 export function missingDetails(templates: readonly Pick<BatchTemplate, 'body'>[], run: SavedRun): CompanyField[] {
   const used = new Set<CompanyField>()

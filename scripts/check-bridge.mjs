@@ -161,6 +161,8 @@ try {
   const batch = app.getByTestId('batch')
   await batch.getByLabel('Month').selectOption({ label: 'August 2026' })
   check((await batch.getByRole('checkbox', { name: /BRN C2222222/ }).count()) === 0, 'A company the user is only a member of is offered.')
+  check((await batch.getByTestId('batch-chosen').textContent()).trim() === '1 of 2 companies chosen.', 'The zip does not start with only the selected company ticked.')
+  await batch.getByRole('button', { name: 'Select all' }).click()
   await batch.getByRole('button', { name: 'Make the zip' }).click()
   await batch.getByTestId('batch-report').waitFor()
   const batchAsked = await page.evaluate(() => window.hub.state.asked)

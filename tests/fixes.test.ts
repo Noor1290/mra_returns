@@ -5,7 +5,7 @@
 // a whole-rupee number. P11: a month not approved is said, and never stops anything. Fake values only.
 import { describe, expect, it } from 'vitest'
 import { prgfEmployeeCells, standardTemplate, withRequired } from '../src/data/mraLayouts'
-import { missingDetails, type BatchTemplate } from '../src/lib/batch'
+import { missingDetails, startingChoice, type BatchTemplate } from '../src/lib/batch'
 import { writeCsv } from '../src/lib/csvFile'
 import { buildFile, type FileContext } from '../src/lib/evaluate'
 import { batchZip, downloadChecks, hasChecks, reportLines, unwritableLines } from '../src/lib/report'
@@ -13,6 +13,8 @@ import { fileBytes, makeReturnFile } from '../src/lib/returnFile'
 import { isDraft, runSchema, type SavedRun } from '../src/lib/runStore'
 import { defaultFormat, formatFor, NO_OWN_VALUES, templateBodySchema, type Cell, type TemplateBody } from '../src/lib/template'
 import { fixedText } from '../src/lib/unwritable'
+import { failure, type HubPort } from '../src/lib/hubWire'
+import { listCompanies } from '../src/lib/runStore'
 import { ABC } from './fixtures/fakeCompany'
 import { readZip } from './lib/readZip'
 
@@ -323,6 +325,31 @@ describe('P7: MRA details', () => {
     const run = company({ mra: { ern: '', telephone: '', mobile: '', declarant: 'JANE SAMPLE' } })
     expect(missingDetails([{ body: standardTemplate('csg') }], run)).toEqual([])
     expect(missingDetails([{ body: withRequired(standardTemplate('csg'), ['m0', 'm6']) }], run)).toEqual(['ern'])
+  })
+})
+
+describe('P6: the companies of the zip', () => {
+  it('start with only the company selected in the dashboard', () => {
+    const companies = [{ brn: 'C1' }, { brn: 'C2' }, { brn: 'c3 ' }]
+    expect([...startingChoice(companies, 'C2')]).toEqual(['C2'])
+    expect([...startingChoice(companies, 'C3')]).toEqual(['c3 '])
+    expect([...startingChoice(companies, 'C9')]).toEqual([])
+  })
+})
+
+describe('P10: an account with no company', () => {
+  const SENTENCE = "Your account isn't a member of any company in the dashboard yet. Ask an admin to add you."
+
+  it('is told so, once, and not to sign in', async () => {
+    const port: HubPort = { send: async () => ({ ok: false, code: 'no-company', error: SENTENCE }), requestTimeoutMs: 50 }
+    const answer = await listCompanies(port)
+    expect(answer).toMatchObject({ ok: false, failure: { kind: 'no-company', hubError: null } })
+    if (!answer.ok) expect(`${answer.failure.title} ${answer.failure.detail}`).toBe(SENTENCE)
+  })
+
+  it('has the same words whichever way it is reached', () => {
+    const { title, detail } = failure('no-company')
+    expect(`${title} ${detail}`).toBe(SENTENCE)
   })
 })
 

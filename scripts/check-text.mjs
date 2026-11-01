@@ -132,6 +132,7 @@ try {
   const batchCard = batched.app.getByTestId('batch')
   await batchCard.getByRole('button', { name: 'Make the zip' }).waitFor()
   await record('dashboard: several companies', frameOf(batched))
+  await batchCard.getByRole('button', { name: 'Select all' }).click()
   await batchCard.getByLabel('Month').selectOption({ label: 'August 2026' })
   await batchCard.getByRole('button', { name: 'Make the zip' }).click()
   await batchCard.getByTestId('batch-report').waitFor()

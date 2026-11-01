@@ -78,6 +78,8 @@ const changes = [
   ['A month not approved is left out of the report', 'src/lib/report.ts', "if (company.run && isDraft(company.run)) lines.push(", 'if (false) lines.push('],
   ['A month approved is called not approved', 'src/lib/runStore.ts', "run.run && run.status === 'draft'", "run.run && run.status !== 'approved'"],
   ['Any MRA detail warns, Required or not', 'src/lib/batch.ts', "if (cell.required && cell.source.type === 'company')", "if (cell.source.type === 'company')"],
+  ['Every company starts ticked in the zip', 'src/lib/batch.ts', 'companies.filter((company) => normaliseBrn(company.brn) === normaliseBrn(selectedBrn)).map((company) => company.brn)', 'companies.map((company) => company.brn)'],
+  ['An account with no company gets the old message', 'src/lib/hubWire.ts', "'invalid', 'unavailable', 'no-company', 'locked',", "'invalid', 'unavailable', 'locked',"],
   ['A Payroll column starts as text', 'src/lib/template.ts', "if (source.type === 'employee' && source.group === 'column') return defaultFormat('calc')\n", ''],
 ]
 

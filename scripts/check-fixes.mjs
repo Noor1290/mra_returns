@@ -131,6 +131,7 @@ try {
 
   // The dialog of the zip, far down a long report, is in the window too.
   const batch = page.getByTestId('batch')
+  await batch.getByRole('button', { name: 'Select all' }).click()
   await batch.getByRole('button', { name: 'Make the zip' }).click()
   await batch.getByTestId('batch-report').waitFor()
   await batch.getByRole('button', { name: 'Download the zip' }).click()

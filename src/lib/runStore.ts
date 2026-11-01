@@ -68,6 +68,8 @@ export const runSchema = z
     address: z.string().max(500).nullable(),
     period: month,
     run: z.boolean(),
+    // Whether the saved run is approved in the dashboard; an older dashboard does not say.
+    status: z.enum(['draft', 'approved']).nullable().optional(),
     employees: z.array(z.record(z.string(), z.unknown())).max(10_000),
     // Since the dashboard's migration 0020: the company's MRA details (from its Company profile),
     // the signed-in user's own email for the returns, and its own values for its templates.
@@ -85,6 +87,9 @@ export const runSchema = z
 
 /** One company's saved run of a month, as the dashboard sends it. */
 export type SavedRun = z.infer<typeof runSchema>
+
+/** A saved month the dashboard says is not approved. It can still be used. */
+export const isDraft = (run: Pick<SavedRun, 'run' | 'status'>) => run.run && run.status === 'draft'
 
 export type Loaded = { ok: true; run: SavedRun } | { ok: false; failure: Failure }
 

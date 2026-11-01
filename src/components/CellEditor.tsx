@@ -8,6 +8,7 @@ import {
   cellName,
   cellsOf,
   defaultFormat,
+  formatFor,
   headingOf,
   type Cell,
   type Format,
@@ -68,6 +69,13 @@ export function readRate(text: string): string | null {
 function NumberText({ label, value, onChange, disabled, allowEmpty, hint }: { label: string; value: string | null; onChange: (value: string | null) => void; disabled: boolean; allowEmpty: boolean; hint?: string }) {
   const [typed, setTyped] = useState(value ?? '')
   const [wrong, setWrong] = useState(false)
+  // The value used changed from outside this box (a part removed, an undo): the box follows it.
+  const [known, setKnown] = useState(value)
+  if (value !== known) {
+    setKnown(value)
+    setTyped(value ?? '')
+    setWrong(false)
+  }
   const id = useId()
   return (
     <label className="field" htmlFor={id}>
@@ -82,12 +90,16 @@ function NumberText({ label, value, onChange, disabled, allowEmpty, hint }: { la
           setTyped(event.target.value)
           if (allowEmpty && event.target.value.trim() === '') {
             setWrong(false)
+            setKnown(null)
             onChange(null)
             return
           }
           const read = readRate(event.target.value)
           setWrong(read === null)
-          if (read !== null) onChange(read)
+          if (read !== null) {
+            setKnown(read)
+            onChange(read)
+          }
         }}
       />
       {wrong ? <span className="field-error">Write a number, such as 0.045 or 4.5%.</span> : hint && <span className="field-hint">{hint}</span>}
@@ -111,12 +123,44 @@ function KeyInput({ label, value, options, onChange, disabled }: { label: string
   )
 }
 
-function CalcEditor({ body, cell, terms, onChange, keys, disabled }: { body: TemplateBody; cell: Cell; terms: Term[]; onChange: (terms: Term[]) => void; keys: RunKeys; disabled: boolean }) {
+function CalcEditor({
+  body,
+  cell,
+  terms,
+  once,
+  onChange,
+  onOnce,
+  keys,
+  disabled,
+}: {
+  body: TemplateBody
+  cell: Cell
+  terms: Term[]
+  once: boolean
+  onChange: (terms: Term[]) => void
+  onOnce: (once: boolean) => void
+  keys: RunKeys
+  disabled: boolean
+}) {
   const others = cellsOf(body).filter((found) => found.cell.id !== cell.id)
   const set = (index: number, change: Partial<Term>) => onChange(terms.map((term, i) => (i === index ? { ...term, ...change } : term)))
+  // Parts have no identity of their own: when one goes or comes, every box starts again from its value.
+  const [generation, setGeneration] = useState(0)
+  const reshape = (next: Term[]) => {
+    setGeneration(generation + 1)
+    onChange(next)
+  }
   return (
     <fieldset className="flex flex-col gap-3 rounded-lg border border-line p-3">
       <legend className="field-label px-1">Parts, worked out in order</legend>
+      <label className="field">
+        <span className="field-label">Rounding</span>
+        <select className="input input-sm" value={once ? 'once' : 'parts'} disabled={disabled} onChange={(event) => onOnce(event.target.value === 'once')}>
+          <option value="parts">Part by part, as set below</option>
+          <option value="once">Add the exact values, round the total once</option>
+        </select>
+        {once && <span className="field-hint">Other cells count with their value before rounding. The total is rounded as set under How it is written.</span>}
+      </label>
       {terms.map((term, index) => (
         <div key={index} className="flex flex-col gap-2 border-b border-line pb-3 last:border-b-0 last:pb-0" data-testid="calc-part">
           <div className="flex flex-wrap items-end gap-2">
@@ -160,20 +204,22 @@ function CalcEditor({ body, cell, terms, onChange, keys, disabled }: { body: Tem
               </label>
             )}
             {term.of.type === 'number' && (
-              <NumberText key={`n${index}`} label="Number" value={term.of.value} allowEmpty={false} disabled={disabled} onChange={(value) => value !== null && set(index, { of: { type: 'number', value } })} />
+              <NumberText key={`n${generation}-${index}`} label="Number" value={term.of.value} allowEmpty={false} disabled={disabled} onChange={(value) => value !== null && set(index, { of: { type: 'number', value } })} />
             )}
           </div>
           <div className="flex flex-wrap items-end gap-2">
-            <NumberText key={`r${index}`} label="Multiplied by (optional)" value={term.times} allowEmpty disabled={disabled} hint="0.045, or 4.5%" onChange={(times) => set(index, { times })} />
-            <label className="field">
-              <span className="field-label">Round this part first</span>
-              <select className="input input-sm" value={term.round} disabled={disabled} onChange={(event) => set(index, { round: event.target.value as Term['round'] })}>
-                <option value="none">No</option>
-                <option value="whole">To whole rupees, half up</option>
-                <option value="two">To 2 decimals, half up</option>
-              </select>
-            </label>
-            <button type="button" className="btn btn-sm btn-ghost" disabled={disabled || terms.length === 1} onClick={() => onChange(terms.filter((_, i) => i !== index))} aria-label={`Remove part ${index + 1}`}>
+            <NumberText key={`r${generation}-${index}`} label="Multiplied by (optional)" value={term.times} allowEmpty disabled={disabled} hint="0.045, or 4.5%" onChange={(times) => set(index, { times })} />
+            {!once && (
+              <label className="field">
+                <span className="field-label">Round this part first</span>
+                <select className="input input-sm" value={term.round} disabled={disabled} onChange={(event) => set(index, { round: event.target.value as Term['round'] })}>
+                  <option value="none">No</option>
+                  <option value="whole">To whole rupees, half up</option>
+                  <option value="two">To 2 decimals, half up</option>
+                </select>
+              </label>
+            )}
+            <button type="button" className="btn btn-sm btn-ghost" disabled={disabled || terms.length === 1} onClick={() => reshape(terms.filter((_, i) => i !== index))} aria-label={`Remove part ${index + 1}`}>
               <Minus aria-hidden="true" />
               Remove
             </button>
@@ -185,7 +231,7 @@ function CalcEditor({ body, cell, terms, onChange, keys, disabled }: { body: Tem
           type="button"
           className="btn btn-sm"
           disabled={disabled || terms.length >= MAX_TERMS}
-          onClick={() => onChange([...terms, { sign: 1, of: { type: 'column', key: keys.columns[0] ?? 'Gross Pay' }, times: null, round: 'none' }])}
+          onClick={() => reshape([...terms, { sign: 1, of: { type: 'column', key: keys.columns[0] ?? 'Gross Pay' }, times: null, round: 'none' }])}
         >
           <Plus aria-hidden="true" />
           Add a part
@@ -292,11 +338,11 @@ export function CellEditor(props: CellEditorProps) {
     const { required: _required, zeroMissing: _zero, ...plain } = next
     onChange({ ...plain, ...(cell?.required ? { required: true } : {}), ...(cell?.required && cell.zeroMissing && next.format.type === 'number' ? { zeroMissing: true } : {}) })
   }
-  const setSource = (next: Source) => change({ id: cell?.id ?? newId(), source: next, format: cell?.format ?? defaultFormat(next.type) })
+  const setSource = (next: Source) => change({ id: cell?.id ?? newId(), source: next, format: cell?.format ?? formatFor(next) })
   const setChoice = (next: Choice) => {
     if (next === 'empty') return onChange(null)
     const nextSource = sourceFor(next, keys)
-    change({ id: cell?.id ?? newId(), source: nextSource, format: defaultFormat(nextSource.type) })
+    change({ id: cell?.id ?? newId(), source: nextSource, format: formatFor(nextSource) })
   }
   const setRequired = (required: boolean, zeroMissing: boolean) => {
     if (!cell) return
@@ -382,7 +428,18 @@ export function CellEditor(props: CellEditorProps) {
 
       {source.type === 'month' && <p className="m-0 text-sm text-muted">The month of the return. Choose how it is written below.</p>}
 
-      {source.type === 'calc' && <CalcEditor body={body} cell={cell!} terms={source.terms} keys={keys} disabled={locked} onChange={(terms) => setSource({ type: 'calc', terms })} />}
+      {source.type === 'calc' && (
+        <CalcEditor
+          body={body}
+          cell={cell!}
+          terms={source.terms}
+          once={source.once === true}
+          keys={keys}
+          disabled={locked}
+          onChange={(terms) => setSource({ ...source, terms })}
+          onOnce={(once) => setSource(once ? { type: 'calc', terms: source.terms.map((term) => ({ ...term, round: 'none' })), once: true } : { type: 'calc', terms: source.terms })}
+        />
+      )}
 
       {source.type === 'map' && (
         <div className="flex flex-col gap-3">

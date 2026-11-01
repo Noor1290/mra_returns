@@ -3,9 +3,9 @@
 
 import { toText } from './decimal'
 import type { SkipReason } from './batch'
-import type { CellProblem, HalfNote, MissingValue, Problem } from './evaluate'
-import type { WriteProblem } from './csvFile'
+import type { CellProblem, HalfNote, MissingValue, Problem, SumNote } from './evaluate'
 import type { CompanyField, Source, SourceType } from './template'
+import type { Unwritable } from './unwritable'
 import type { UploadKind } from './upload'
 
 export const SOURCE_LABELS: Record<SourceType | 'identity' | 'column', string> = {
@@ -82,13 +82,22 @@ export function halfNoteText(note: HalfNote): string {
   return `${note.key} is ${toText(note.value)} in the saved run (cell ${note.cell}).`
 }
 
-/** "Line 3, field 2: the character "\u0141" cannot be written in Windows-1252." */
-export function writeProblemText(problem: WriteProblem, separator: string): string {
-  const where = `Line ${problem.line + 1}, field ${problem.field + 1}`
-  return problem.kind === 'character'
-    ? `${where}: the character "${problem.character}" cannot be written in Windows-1252. It would become "?".`
-    : `${where} holds a "${separator}", a quote or a line break, which cannot be written without quotes. Choose quotes "when needed" in the file settings.`
+/** "J5 (Total Remuneration): the rounded parts 20001 + 1001 + 0 make 21002, but the total is 21001." */
+export function sumNoteText(note: SumNote): string {
+  const where = note.heading ? `${note.cell} (${note.heading})` : note.cell
+  const parts = note.parts.map((part, index) => `${index === 0 ? (part.sign === 1 ? '' : '- ') : part.sign === 1 ? '+ ' : '- '}${part.text}`).join(' ')
+  return `${where}: the rounded parts ${parts} make ${note.sum}, but the total is ${note.total}.`
 }
+
+/** "DOE PAUL, ID X0000000000001 (row 2), Other names: Paul, Jr to Paul Jr": who, column, change. */
+export function unwritableText(one: Unwritable, employees: readonly Record<string, unknown>[]): string {
+  const who = one.kind === 'employee' ? employeeWithId(employees[one.employee!], one.employee!) : one.kind === 'employer' ? 'Employer row' : 'Copied row'
+  const column = one.heading || one.cell
+  return one.to === null ? `${who}, ${column}: ${one.from} has a character with no plain letter.` : `${who}, ${column}: ${one.from} \u2192 ${one.to === '' ? '(empty)' : one.to}`
+}
+
+/** "August 2026 isn't approved in the dashboard for ABC Co Ltd." */
+export const notApprovedText = (month: string, company: string) => `${month} isn't approved in the dashboard for ${company}.`
 
 /** "E5 (Surname of Employee) is required and has no value." */
 export function missingText(missing: Pick<MissingValue, 'cell' | 'heading'>): string {

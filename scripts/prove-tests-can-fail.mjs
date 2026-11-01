@@ -58,6 +58,27 @@ const changes = [
   ['The .50 list is left out of the report', 'src/lib/report.ts', '      if (built.halfNotes.length > 0) {', '      if (false) {'],
   ['The required values are left out of the report', 'src/lib/report.ts', '      if (built.missing.length > 0) {', '      if (false) {'],
   ['open-profile no longer names the company', 'src/lib/runStore.ts', "{ action: 'open-profile', company_brn: companyBrn }", "{ action: 'open-profile' }"],
+  // The fixes after the rehearsal.
+  ['A comma is left in the file when fixing', 'src/lib/unwritable.ts', "const spaced = separator ? value.replace(new RegExp(`[ ${breaks}]*[${breaks}][ ${breaks}]*`, 'g'), ' ').trim() : value", 'const spaced = value'],
+  ['A character keeps its accent mark when fixing', 'src/lib/unwritable.ts', "character.normalize('NFD').replace(/\\p{M}/gu, '')", 'character'],
+  ['A character with no plain letter is dropped', 'src/lib/unwritable.ts', "return plain !== '' && unencodable(plain, encoding).length === 0 ? plain : null", "return ''"],
+  ['A case is listed by line, not by employee', 'src/lib/unwritable.ts', '      employee: place.employee,\n', '      employee: null,\n'],
+  ['The fixed file is not what goes out', 'src/lib/returnFile.ts', 'export const fileBytes = (file: ReturnFile) => file.fixedBytes ?? file.bytes', 'export const fileBytes = (file: ReturnFile) => file.bytes'],
+  ['A file with no plain letter can still be fixed', 'src/lib/report.ts', 'canFix: files.every(({ file }) => file.unwritable.every((one) => one.to !== null)),', 'canFix: true,'],
+  ['"Round the total once" reads the rounded cells', 'src/lib/evaluate.ts', "found.cell.format.type === 'number' && !once ?", "found.cell.format.type === 'number' ?"],
+  ['"Round the total once" still rounds a part', 'src/lib/evaluate.ts', "if (!once && term.round === 'whole') {", "if (term.round === 'whole') {"],
+  ['The PRGF total adds rounded parts', 'src/data/mraLayouts.ts', ", once: true }, WHOLE)", " }, WHOLE)"],
+  ['Lines that do not add up are not listed', 'src/lib/evaluate.ts', 'if (position !== null && sum) sumNotes.push(', 'if (false) sumNotes.push('],
+  ['A line that adds up is listed anyway', 'src/lib/evaluate.ts', '  if (isZero(subtract(sum, total))) return null\n', ''],
+  ['A part to subtract is added in the check of the sum', 'src/lib/evaluate.ts', '(sign === 1 ? add(so, value) : subtract(so, value))', 'add(so, value)'],
+  ['Lines that do not add up are left out of the report', 'src/lib/report.ts', '      if (built.sumNotes.length > 0) {', '      if (false) {'],
+  ['Lines that do not add up are left out of the step before the download', 'src/lib/report.ts', 'sums: groups(({ file, employees }) => sumLines(file, employees)),', 'sums: [],'],
+  ['What was fixed is left out of the report', 'src/lib/report.ts', '      if (outcome.file.unwritable.length > 0) {', '      if (false) {'],
+  ['The zip holds the file before the fix', 'src/lib/report.ts', 'bytes: fileBytes(file) }))', 'bytes: file.bytes }))'],
+  ['A month not approved is left out of the report', 'src/lib/report.ts', "if (company.run && isDraft(company.run)) lines.push(", 'if (false) lines.push('],
+  ['A month approved is called not approved', 'src/lib/runStore.ts', "run.run && run.status === 'draft'", "run.run && run.status !== 'approved'"],
+  ['Any MRA detail warns, Required or not', 'src/lib/batch.ts', "if (cell.required && cell.source.type === 'company')", "if (cell.source.type === 'company')"],
+  ['A Payroll column starts as text', 'src/lib/template.ts', "if (source.type === 'employee' && source.group === 'column') return defaultFormat('calc')\n", ''],
 ]
 
 function runTests() {

@@ -41,7 +41,7 @@ export interface CompanyOutcome {
   /** Its saved run (memory only), to name the employees in the report. */
   run: SavedRun | null
   files: FileOutcome[]
-  /** The company details its templates use that are empty: ERN, declarant... */
+  /** The company details its templates mark Required that are empty: ERN, declarant... */
   missingDetails: CompanyField[]
 }
 
@@ -61,11 +61,11 @@ export interface Progress {
   name: string
 }
 
-/** The company details these templates write that the company does not have. */
+/** The company details these templates mark Required that the company does not have. */
 export function missingDetails(templates: readonly Pick<BatchTemplate, 'body'>[], run: SavedRun): CompanyField[] {
   const used = new Set<CompanyField>()
   for (const template of templates) {
-    for (const { cell } of cellsOf(template.body)) if (cell.source.type === 'company') used.add(cell.source.field)
+    for (const { cell } of cellsOf(template.body)) if (cell.required && cell.source.type === 'company') used.add(cell.source.field)
   }
   const info = companyInfo(run)
   return COMPANY_FIELDS.filter((field) => used.has(field) && info[field].trim() === '')

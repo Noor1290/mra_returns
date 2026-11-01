@@ -141,10 +141,10 @@ describe('several companies in one zip', () => {
     expect(readZip(batchZip(prgfOnly.result).bytes).map((entry) => entry.path)).toEqual(['MRA PRGF/', 'MRA PRGF/PRGF AUGUST 2026 ABC CO LTD.csv', 'Report.txt'])
   })
 
-  it('lists the MRA details missing, only those the templates use', async () => {
+  it('lists the MRA details missing, only those the templates mark Required', async () => {
     const { result } = await batch(fakeSource().source)
     const details = Object.fromEntries(result.companies.map((company) => [company.name, company.missingDetails]))
-    expect(details).toEqual({ 'ABC Co Ltd': [], 'DEF Ltd': ['ern', 'telephone', 'mobile', 'declarant'], 'GHI Ltd': [], 'JKL Ltd': [], 'MNO Ltd': [] })
+    expect(details).toEqual({ 'ABC Co Ltd': [], 'DEF Ltd': ['ern', 'declarant'], 'GHI Ltd': [], 'JKL Ltd': [], 'MNO Ltd': [] })
   })
 
   it('writes the report: made, skipped and why, the required values, the MRA details missing and the .50 list', async () => {
@@ -175,7 +175,7 @@ describe('several companies in one zip', () => {
       '      DOE JANE ANN (row 1): CSG is 562.5 in the saved run (cell J5).',
       '      DOE JANE ANN (row 1): Employee NSF is 187.5 in the saved run (cell K5).',
       '  MRA PRGF: Skipped: this company does not use this template.',
-      '  MRA details missing: Employer Registration Number (ERN), Telephone number, Mobile number, Name of declarant. Fill them in on its Company profile in the dashboard.',
+      '  MRA details missing: Employer Registration Number (ERN), Name of declarant. Fill them in on its Company profile in the dashboard.',
       '',
       'GHI Ltd, BRN C4444444',
       '  MRA CSG (PACO): Skipped: August 2026 has not been sent to the dashboard for this company.',

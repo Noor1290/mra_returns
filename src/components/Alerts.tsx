@@ -1,50 +1,136 @@
-import { Building2, CircleAlert, ListChecks } from 'lucide-react'
+import { Building2, CircleAlert, Download, ListChecks, TriangleAlert, WandSparkles } from 'lucide-react'
 import { useState } from 'react'
 import type { Failure } from '../lib/hubWire'
-import { PROFILE_HINT } from '../lib/report'
+import { PROFILE_HINT, type CheckGroup, type DownloadChecks } from '../lib/report'
 import type { CompanyField } from '../lib/template'
 import { detailsMissingText } from '../lib/wording'
 import { Dialog } from './Dialog'
 import { FailurePanel } from './FailurePanel'
 
-/** The required values that are empty in one file: "ABC Co Ltd, MRA CSG (PACO)" and its lines. */
-export interface RequiredGroup {
-  title: string
-  lines: string[]
-}
+export const lineCount = (groups: readonly CheckGroup[]) => groups.reduce((sum, group) => sum + group.lines.length, 0)
 
-export const requiredCount = (groups: readonly RequiredGroup[]) => groups.reduce((sum, group) => sum + group.lines.length, 0)
+/**
+ * Before a download, one step at a time, and nothing is downloaded until the last choice. First the
+ * values the file cannot hold: Go back, or Fix in this file only. Then the required values that
+ * are empty and the lines whose rounded parts do not add up to their total.
+ */
+export function BeforeDownload({ checks, onDownload, onClose }: { checks: DownloadChecks; onDownload: () => void; onClose: () => void }) {
+  const [fixed, setFixed] = useState(false)
+  const { unwritable, canFix, required, sums } = checks
+  const goBack = (
+    <button type="button" className="btn" onClick={onClose}>
+      Go back
+    </button>
+  )
 
-/** Before an export: every required value that comes out empty, and the choice. */
-export function RequiredDialog({ groups, onExport, onClose }: { groups: RequiredGroup[]; onExport: () => void; onClose: () => void }) {
-  const count = requiredCount(groups)
+  if (unwritable.length > 0 && !fixed) {
+    const count = lineCount(unwritable)
+    return (
+      <Dialog
+        title={count === 1 ? "1 value can't be written in the file" : `${count} values can't be written in the file`}
+        description={canFix ? 'Nothing is downloaded until you choose. Go back to correct it in Payroll System, or fix it in this file only.' : "A character here has no plain letter, so it can't be fixed in the file. Go back and correct it in Payroll System."}
+        icon={<TriangleAlert />}
+        tone="tone-danger"
+        onClose={onClose}
+        width={680}
+        actions={
+          <>
+            {goBack}
+            {canFix && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  if (required.length + sums.length === 0) onDownload()
+                  else setFixed(true)
+                }}
+              >
+                <WandSparkles aria-hidden="true" />
+                Fix in this file only
+              </button>
+            )}
+          </>
+        }
+      >
+        <div data-testid="unwritable-dialog">
+          <RequiredList groups={unwritable} />
+        </div>
+      </Dialog>
+    )
+  }
+
+  const empty = lineCount(required)
+  const title = required.length === 0 ? "Check these lines before uploading" : empty === 1 ? '1 required value is empty' : `${empty} required values are empty`
   return (
     <Dialog
-      title={count === 1 ? '1 required value is empty' : `${count} required values are empty`}
-      description="Fill these in, or export anyway."
+      title={title}
+      description={required.length === 0 ? undefined : 'Fill these in, or export anyway.'}
       icon={<ListChecks />}
       tone="tone-warn"
       onClose={onClose}
-      width={640}
+      width={680}
       actions={
         <>
-          <button type="button" className="btn" onClick={onClose}>
-            Go back
-          </button>
-          <button type="button" className="btn btn-primary" onClick={onExport}>
-            Export anyway
+          {goBack}
+          <button type="button" className="btn btn-primary" onClick={onDownload}>
+            {required.length === 0 ? <Download aria-hidden="true" /> : null}
+            {required.length === 0 ? 'Download' : 'Export anyway'}
           </button>
         </>
       }
     >
-      <div data-testid="required-dialog">
-        <RequiredList groups={groups} />
+      <div className="flex flex-col gap-4">
+        {required.length > 0 && (
+          <div data-testid="required-dialog">
+            <RequiredList groups={required} />
+          </div>
+        )}
+        {sums.length > 0 && (
+          <div className="flex flex-col gap-2 text-sm" data-testid="sums-dialog">
+            <p className="m-0 font-semibold">Lines where the rounded parts don't add up to the total</p>
+            <p className="m-0 text-muted">{SUMS_HINT}</p>
+            <RequiredList groups={sums} />
+          </div>
+        )}
       </div>
     </Dialog>
   )
 }
 
-export function RequiredList({ groups }: { groups: RequiredGroup[] }) {
+const SUMS_HINT = 'The total is the exact sum rounded once, so it can differ from the rounded parts beside it. The portal may add them up.'
+
+/** Under a file: the lines whose rounded parts do not add up to their total, like the .50 list. */
+export function SumNotes({ lines, testId }: { lines: string[]; testId: string }) {
+  return (
+    <details className="rounded-lg border border-line p-3 text-sm" data-testid={testId}>
+      <summary className="cursor-pointer font-semibold">
+        {lines.length} {lines.length === 1 ? "line's rounded parts don't" : "lines' rounded parts don't"} add up to the total
+      </summary>
+      <p className="m-0 mt-2 text-muted">{SUMS_HINT}</p>
+      <ul className="m-0 mt-2 flex list-none flex-col gap-1 p-0">
+        {lines.map((line, index) => (
+          <li key={index} data-values>
+            {line}
+          </li>
+        ))}
+      </ul>
+    </details>
+  )
+}
+
+/** A month the dashboard has not approved: said clearly, and it never stops a download. */
+export function NotApproved({ text, testId }: { text: string; testId: string }) {
+  return (
+    <div className="panel tone-warn" role="note" data-testid={testId}>
+      <TriangleAlert aria-hidden="true" />
+      <p className="m-0 text-sm" data-values>
+        {text}
+      </p>
+    </div>
+  )
+}
+
+export function RequiredList({ groups }: { groups: CheckGroup[] }) {
   return (
     <div className="flex flex-col gap-3 text-sm">
       {groups.map((group, index) => (
@@ -54,7 +140,9 @@ export function RequiredList({ groups }: { groups: RequiredGroup[] }) {
           </p>
           <ul className="m-0 flex list-none flex-col gap-1 p-0">
             {group.lines.map((line, n) => (
-              <li key={n}>{line}</li>
+              <li key={n} data-values>
+                {line}
+              </li>
             ))}
           </ul>
         </div>

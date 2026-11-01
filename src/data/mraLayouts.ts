@@ -121,7 +121,10 @@ export function csgEmployeeCells(): Cell[] {
   ]
 }
 
-/** PRGF: "PRGF Contribution Amount" = round(4.5 % of the total remuneration), rounded once. */
+/**
+ * PRGF: "Total Remuneration" is the exact sum of its parts, rounded once, and "PRGF Contribution
+ * Amount" = round(4.5 % of that total as written in the line), so the two always agree.
+ */
 export function prgfEmployeeCells(): (Cell | null)[] {
   return [
     identity('e0', 'ID'),
@@ -133,7 +136,7 @@ export function prgfEmployeeCells(): (Cell | null)[] {
     column('e6', 'New Basic Salary'),
     column('e7', 'Allowances'),
     fixed('e8', '0'),
-    cell('e9', { type: 'calc', terms: [part({ type: 'cell', id: 'e6' }), part({ type: 'cell', id: 'e7' }), part({ type: 'cell', id: 'e8' })] }, WHOLE),
+    cell('e9', { type: 'calc', terms: [part({ type: 'cell', id: 'e6' }), part({ type: 'cell', id: 'e7' }), part({ type: 'cell', id: 'e8' })], once: true }, WHOLE),
     cell('e10', { type: 'calc', terms: [part({ type: 'cell', id: 'e9' }, 'none', '0.045')] }, WHOLE),
     null,
   ]

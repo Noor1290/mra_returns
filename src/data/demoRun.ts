@@ -46,6 +46,7 @@ export const DEMO_RUN: SavedRun = {
   address: '1 Fake Street, Port Louis',
   period: '2026-08',
   run: true,
+  status: 'approved',
   employees: [
     employee('X0000000000001', 'DOE', 'JANE', 18115, 635, '2020-02-01'),
     employee('X0000000000002', 'ROE', 'RICHARD', 17911, 635, '2021-01-01'),

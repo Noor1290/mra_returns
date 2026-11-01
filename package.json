@@ -15,7 +15,8 @@
     "check:a11y": "node scripts/check-a11y.mjs",
     "check:bridge": "node scripts/check-bridge.mjs",
     "check:text": "node scripts/check-text.mjs",
-    "check": "npm run check:encoding && npm run lint && npm run typecheck && npm test && npm run build && npm run check:build && npm run check:bridge && npm run check:a11y && npm run check:text",
+    "check:fixes": "node scripts/check-fixes.mjs",
+    "check": "npm run check:encoding && npm run lint && npm run typecheck && npm test && npm run build && npm run check:build && npm run check:bridge && npm run check:a11y && npm run check:fixes && npm run check:text",
     "prove": "node scripts/prove-tests-can-fail.mjs"
   },
   "dependencies": {

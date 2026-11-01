@@ -1,14 +1,14 @@
 import { CircleAlert, FileArchive, FileCheck2, TriangleAlert } from 'lucide-react'
 import { useId, useMemo, useState } from 'react'
-import { MissingDetails, RequiredDialog, RequiredList, type RequiredGroup } from '../components/Alerts'
+import { BeforeDownload, MissingDetails, NotApproved, RequiredList, SumNotes } from '../components/Alerts'
 import { FailurePanel } from '../components/FailurePanel'
 import { madeFiles, runBatch, type BatchResult, type BatchSource, type CompanyOutcome, type Progress } from '../lib/batch'
 import { formatPeriod } from '../lib/dates'
 import type { Failure } from '../lib/hubWire'
-import { batchZip, countsOf, EXCEL_REMINDER, madeAt, requiredLines } from '../lib/report'
-import type { BatchCompany } from '../lib/runStore'
+import { batchZip, countsOf, downloadChecks, EXCEL_REMINDER, hasChecks, madeAt, requiredLines, sumLines, unwritableLines, type DownloadChecks } from '../lib/report'
+import { isDraft, type BatchCompany } from '../lib/runStore'
 import type { TemplateStore } from '../lib/templateStore'
-import { batchCountText, employeeName, halfNoteText, madeText, problemText, skipText, writeProblemText } from '../lib/wording'
+import { batchCountText, employeeName, halfNoteText, madeText, notApprovedText, problemText, skipText } from '../lib/wording'
 import { download } from './ExportPanel'
 import { useTemplates } from './useTemplates'
 
@@ -40,7 +40,7 @@ export function BatchPanel({ store, source, companies, selectedBrn, months, init
   const [chosen, setChosen] = useState<Set<string>>(() => new Set(companies.map((company) => company.brn)))
   const [search, setSearch] = useState('')
   const [phase, setPhase] = useState<Phase>({ status: 'idle' })
-  const [confirming, setConfirming] = useState<RequiredGroup[] | null>(null)
+  const [confirming, setConfirming] = useState<DownloadChecks | null>(null)
   const [downloaded, setDownloaded] = useState<string | null>(null)
   const searchId = useId()
 
@@ -219,18 +219,18 @@ export function BatchPanel({ store, source, companies, selectedBrn, months, init
             openProfile={openProfile}
             downloaded={downloaded}
             onDownload={() => {
-              const groups = requiredGroups(phase.result)
-              if (groups.length > 0) setConfirming(groups)
+              const checks = batchChecks(phase.result)
+              if (hasChecks(checks)) setConfirming(checks)
               else downloadZip(phase.result)
             }}
           />
         )}
       </div>
       {confirming && phase.status === 'done' && (
-        <RequiredDialog
-          groups={confirming}
+        <BeforeDownload
+          checks={confirming}
           onClose={() => setConfirming(null)}
-          onExport={() => {
+          onDownload={() => {
             setConfirming(null)
             downloadZip(phase.result)
           }}
@@ -240,11 +240,9 @@ export function BatchPanel({ store, source, companies, selectedBrn, months, init
   )
 }
 
-/** Every required value that is empty, by company and template. */
-function requiredGroups(result: BatchResult): RequiredGroup[] {
-  return madeFiles(result)
-    .filter(({ file }) => file.built.missing.length > 0)
-    .map(({ company, template, file }) => ({ title: `${company.name}, ${template.name}`, lines: requiredLines(file, company.run?.employees ?? []) }))
+/** What must be seen before the zip, by company and template. */
+function batchChecks(result: BatchResult): DownloadChecks {
+  return downloadChecks(madeFiles(result).map(({ company, template, file }) => ({ title: `${company.name}, ${template.name}`, file, employees: company.run?.employees ?? [] })))
 }
 
 function BatchReport({
@@ -306,6 +304,7 @@ function CompanyReport({ company, period, another, openProfile }: { company: Com
         {company.name}, BRN {company.brn}
       </h4>
       {company.failure && <FailurePanel failure={company.failure} />}
+      {company.run && isDraft(company.run) && <NotApproved text={notApprovedText(month, company.name)} testId="batch-not-approved" />}
       <ul className="m-0 flex list-none flex-col gap-3 p-0 text-sm">
         {company.files.map((outcome) => (
           <li key={outcome.template.template_id} className="flex flex-col gap-2" data-testid="batch-file">
@@ -315,7 +314,7 @@ function CompanyReport({ company, period, another, openProfile }: { company: Com
             {outcome.made && outcome.file.built.leftOut.length > 0 && (
               <p className="m-0 text-muted">Left out with no pay: {outcome.file.built.leftOut.map((index) => employeeName(employees[index], index)).join(', ')}.</p>
             )}
-            {outcome.made && outcome.file.problems.length + outcome.file.writeProblems.length > 0 && (
+            {outcome.made && outcome.file.problems.length + outcome.file.unwritable.length > 0 && (
               <div className="panel tone-danger" role="alert">
                 <CircleAlert aria-hidden="true" />
                 <div className="flex flex-col gap-1">
@@ -327,8 +326,10 @@ function CompanyReport({ company, period, another, openProfile }: { company: Com
                         {problemText(problem)}
                       </li>
                     ))}
-                    {outcome.file.writeProblems.map((problem, index) => (
-                      <li key={`w${index}`}>{writeProblemText(problem, outcome.template.body.settings.separator)}</li>
+                    {unwritableLines(outcome.file, employees).map((line, index) => (
+                      <li key={`w${index}`} data-values>
+                        {line}
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -360,6 +361,7 @@ function CompanyReport({ company, period, another, openProfile }: { company: Com
                 </ul>
               </details>
             )}
+            {outcome.made && outcome.file.built.sumNotes.length > 0 && <SumNotes lines={sumLines(outcome.file, employees)} testId="batch-sum-notes" />}
           </li>
         ))}
       </ul>

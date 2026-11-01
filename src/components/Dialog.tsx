@@ -1,8 +1,10 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 /**
  * A dialog over the page: a title, a one-line description, its content, then the actions. Focus
- * moves into it and comes back when it closes; Escape closes it; Tab stays inside it.
+ * moves into it and comes back when it closes; Escape closes it; Tab stays inside it. It is put
+ * directly in the page: inside a card with a blur it would be centred on the card, not the window.
  */
 export function Dialog({
   title,
@@ -54,7 +56,7 @@ export function Dialog({
     }
   }
 
-  return (
+  return createPortal(
     <div className="overlay" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <div
         ref={box}
@@ -84,6 +86,7 @@ export function Dialog({
         {children && <div className="flex min-h-0 flex-col gap-3 overflow-auto p-5">{children}</div>}
         <div className="flex flex-wrap justify-end gap-2 border-t border-line p-4">{actions}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

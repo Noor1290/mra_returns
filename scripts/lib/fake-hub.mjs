@@ -51,6 +51,8 @@ export function createFakeHub() {
     requests: [],
     /** The companies whose Company profile the app asked the dashboard to show (open-profile), by BRN. */
     opened: [],
+    /** The saved months not approved yet, as "BRN YYYY-MM": every other saved month is approved. */
+    drafts: [],
     /** The MRA details of each company (mra-batch load), by BRN, and the user's email. */
     mra: { C1234567: { ern: '001234', telephone: '2000000', mobile: '52000000', declarant: 'JANE SAMPLE' } },
     email: 'returns@example.org',
@@ -218,6 +220,7 @@ export function createFakeHub() {
             address: target.address,
             period: params.period,
             run: employees !== undefined,
+            status: employees === undefined ? null : state.drafts.includes(`${target.brn} ${params.period}`) ? 'draft' : 'approved',
             employees: employees ?? [],
             mra: state.mra[target.brn] ?? { ern: '', telephone: '', mobile: '', declarant: '' },
             email: state.email,

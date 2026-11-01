@@ -67,7 +67,15 @@ const sourceSchema = z.discriminatedUnion('type', [
    */
   z.strictObject({ type: z.literal('employee'), key, group: z.enum(['identity', 'column']) }),
   z.strictObject({ type: z.literal('month') }),
-  z.strictObject({ type: z.literal('calc'), terms: z.array(termSchema).min(1).max(MAX_TERMS) }),
+  z.strictObject({
+    type: z.literal('calc'),
+    terms: z.array(termSchema).min(1).max(MAX_TERMS),
+    /**
+     * Add the exact values and round the total once: another cell counts with its value before
+     * that cell's rounding, and no part is rounded on its own. Left out of the JSON when off.
+     */
+    once: z.literal(true).optional(),
+  }),
   /** Text turned into a code: "Full Time" -> Y. Capitals and spaces are ignored. */
   z.strictObject({
     type: z.literal('map'),
@@ -181,6 +189,12 @@ export function defaultFormat(source: SourceType): Format {
     default:
       return { type: 'text', capitals: false, tidy: false }
   }
+}
+
+/** The format a cell starts with for what goes in it: a payroll column is a whole-rupee number. */
+export function formatFor(source: Source): Format {
+  if (source.type === 'employee' && source.group === 'column') return defaultFormat('calc')
+  return defaultFormat(source.type)
 }
 
 /** "A", "B", ... "Z", "AA": a column's name, as a spreadsheet names it. */

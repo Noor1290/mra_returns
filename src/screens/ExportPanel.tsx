@@ -1,15 +1,15 @@
 import { CircleAlert, Download, FileCheck2, TriangleAlert } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { MissingDetails, RequiredDialog, RequiredList, type RequiredGroup } from '../components/Alerts'
+import { BeforeDownload, MissingDetails, NotApproved, RequiredList, SumNotes } from '../components/Alerts'
 import { FailurePanel } from '../components/FailurePanel'
 import { missingDetails } from '../lib/batch'
 import { formatPeriod } from '../lib/dates'
 import type { Failure } from '../lib/hubWire'
-import { EXCEL_REMINDER, requiredLines } from '../lib/report'
-import { makeReturnFile } from '../lib/returnFile'
-import type { SavedRun } from '../lib/runStore'
+import { downloadChecks, EXCEL_REMINDER, hasChecks, requiredLines, sumLines, unwritableLines, type DownloadChecks } from '../lib/report'
+import { fileBytes, makeReturnFile } from '../lib/returnFile'
+import { isDraft, type SavedRun } from '../lib/runStore'
 import type { TemplateStore } from '../lib/templateStore'
-import { employeeName, halfNoteText, problemText, writeProblemText } from '../lib/wording'
+import { employeeName, halfNoteText, notApprovedText, problemText } from '../lib/wording'
 import { useTemplates } from './useTemplates'
 
 /** Hands a file to the browser as a download. Made in memory; nothing is kept. */
@@ -31,7 +31,7 @@ export function download(file: { fileName: string; bytes: Uint8Array }, type = '
 export function ExportPanel({ store, run, version, onOpenProfile }: { store: TemplateStore; run: SavedRun; version: number; onOpenProfile: (() => Promise<Failure | null>) | null }) {
   const [unticked, setUnticked] = useState<Set<string>>(new Set())
   const [done, setDone] = useState<string[] | null>(null)
-  const [confirming, setConfirming] = useState<RequiredGroup[] | null>(null)
+  const [confirming, setConfirming] = useState<DownloadChecks | null>(null)
   const { loaded, retry } = useTemplates(store, version)
 
   // The templates are read again: what was downloaded may no longer be what is shown.
@@ -49,7 +49,7 @@ export function ExportPanel({ store, run, version, onOpenProfile }: { store: Tem
   const month = formatPeriod(run.period)
   const details = loaded.status === 'loaded' ? missingDetails(loaded.templates, run) : []
   const downloadChosen = () => {
-    for (const { file } of chosen) download(file)
+    for (const { file } of chosen) download({ fileName: file.fileName, bytes: fileBytes(file) })
     setDone(chosen.map(({ file }) => file.fileName))
   }
 
@@ -65,6 +65,7 @@ export function ExportPanel({ store, run, version, onOpenProfile }: { store: Tem
           <TriangleAlert aria-hidden="true" />
           <p className="m-0 text-sm">{EXCEL_REMINDER}</p>
         </div>
+        {isDraft(run) && <NotApproved text={notApprovedText(month, run.name)} testId="export-not-approved" />}
         {details.length > 0 && <MissingDetails fields={details} another={false} onOpen={onOpenProfile} />}
 
         {loaded.status === 'loading' && (
@@ -108,7 +109,7 @@ export function ExportPanel({ store, run, version, onOpenProfile }: { store: Tem
                 {written.length} {written.length === 1 ? 'employee' : 'employees'} in the file.
                 {leftOut.length > 0 && ` Left out with no pay: ${leftOut.map((index) => employeeName(run.employees[index], index)).join(', ')}.`}
               </p>
-              {(file.problems.length > 0 || file.writeProblems.length > 0) && (
+              {(file.problems.length > 0 || file.unwritable.length > 0) && (
                 <div className="panel tone-danger" role="alert" data-testid="export-problems">
                   <CircleAlert aria-hidden="true" />
                   <div className="flex flex-col gap-1">
@@ -120,8 +121,10 @@ export function ExportPanel({ store, run, version, onOpenProfile }: { store: Tem
                           {problemText(problem)}
                         </li>
                       ))}
-                      {file.writeProblems.map((problem, index) => (
-                        <li key={`w${index}`}>{writeProblemText(problem, template.body.settings.separator)}</li>
+                      {unwritableLines(file, run.employees).map((line, index) => (
+                        <li key={`w${index}`} data-values>
+                          {line}
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -153,6 +156,7 @@ export function ExportPanel({ store, run, version, onOpenProfile }: { store: Tem
                   </ul>
                 </details>
               )}
+              {file.built.sumNotes.length > 0 && <SumNotes lines={sumLines(file, run.employees)} testId="sum-notes" />}
             </article>
           )
         })}
@@ -164,10 +168,8 @@ export function ExportPanel({ store, run, version, onOpenProfile }: { store: Tem
               className="btn btn-primary"
               disabled={chosen.length === 0}
               onClick={() => {
-                const groups = chosen
-                  .filter(({ file }) => file.built.missing.length > 0)
-                  .map(({ template, file }) => ({ title: `${run.name}, ${template.name}`, lines: requiredLines(file, run.employees) }))
-                if (groups.length > 0) setConfirming(groups)
+                const checks = downloadChecks(chosen.map(({ template, file }) => ({ title: `${run.name}, ${template.name}`, file, employees: run.employees })))
+                if (hasChecks(checks)) setConfirming(checks)
                 else downloadChosen()
               }}
             >
@@ -184,10 +186,10 @@ export function ExportPanel({ store, run, version, onOpenProfile }: { store: Tem
         )}
       </div>
       {confirming && (
-        <RequiredDialog
-          groups={confirming}
+        <BeforeDownload
+          checks={confirming}
           onClose={() => setConfirming(null)}
-          onExport={() => {
+          onDownload={() => {
             setConfirming(null)
             downloadChosen()
           }}

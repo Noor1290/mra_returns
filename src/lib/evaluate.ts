@@ -4,7 +4,7 @@
 // rate, round each part, with exact decimals. Nothing is ever run as code (no eval, no new
 // Function).
 
-import { add, endsInHalf, isZero, multiply, parseDecimal, roundHalfUp, subtract, ZERO, type Decimal } from './decimal'
+import { add, endsInHalf, isZero, multiply, parseDecimal, roundHalfUp, subtract, toFixed, ZERO, type Decimal } from './decimal'
 import { asNumber, monthValue, NONE, valueOf, writeValue, type Value } from './formats'
 import { cellName, cellsOf, headingOf, type Cell, type CompanyField, type OwnValues, type TemplateBody, type Term } from './template'
 
@@ -64,14 +64,40 @@ export interface MissingValue {
   employee: number | null
 }
 
+/**
+ * A line where a calculation's parts, each rounded as the cell is written, do not add up to the
+ * total written: 20,000.50 + 1,000.50 is 21,001, rounded once, but 20,001 + 1,001 is 21,002.
+ */
+export interface SumNote {
+  employee: number
+  cell: string
+  heading: string
+  /** The parts, rounded as the cell is written. */
+  parts: { sign: 1 | -1; text: string }[]
+  sum: string
+  total: string
+}
+
+/** Where a line of the file comes from: a row of the template, and which employee when it is one. */
+export interface LinePlace {
+  row: number
+  kind: 'copy' | 'employer' | 'employee'
+  employee: number | null
+}
+
 export interface BuiltFile {
   /** Every line, as its fields, in order. */
   lines: string[][]
+  /** The same fields as they are in the data, before capitals or tidying. */
+  originals: string[][]
+  /** Where each line comes from. */
+  places: LinePlace[]
   /** The positions (from 0) of the employees written, and of those left out for no pay. */
   written: number[]
   leftOut: number[]
   problems: Problem[]
   halfNotes: HalfNote[]
+  sumNotes: SumNote[]
   missing: MissingValue[]
 }
 
@@ -85,6 +111,8 @@ interface Evaluated {
   /** No value came from the data: an empty source, or a calculation of empty values only. */
   empty: boolean
   problem: CellProblem | null
+  /** A calculation's parts, exact, each with its sign. */
+  parts?: { sign: 1 | -1; value: Decimal }[]
 }
 
 const located = (body: TemplateBody) => {
@@ -128,6 +156,7 @@ class Evaluator {
       roundsWhole: worked.roundsWhole || (cell.format.type === 'number' && cell.format.decimals === 0),
       empty: worked.empty,
       problem: worked.problem ?? written.problem,
+      parts: worked.parts,
     }
     this.memo.set(cell.id, result)
     return result
@@ -163,19 +192,20 @@ class Evaluator {
         return plain(text === '' ? NONE : { kind: 'text', text })
       }
       case 'calc':
-        return this.calc(source.terms)
+        return this.calc(source.terms, source.once === true)
     }
   }
 
-  private calc(terms: Term[]): Omit<Evaluated, 'text'> {
+  private calc(terms: Term[], once: boolean): Omit<Evaluated, 'text'> {
     let total = ZERO
+    const parts: NonNullable<Evaluated['parts']> = []
     const uses: Evaluated['uses'] = []
     let roundsWhole = false
     // Empty when it reads columns or cells and every one of them is empty (a number is not data).
     let reads = false
     let anyValue = false
     for (const term of terms) {
-      const part = this.operand(term)
+      const part = this.operand(term, once)
       if (part.problem) return { value: NONE, uses, roundsWhole, empty: true, problem: part.problem }
       uses.push(...part.uses)
       roundsWhole ||= part.roundsWhole
@@ -189,18 +219,19 @@ class Evaluator {
         if (!product) return { value: NONE, uses, roundsWhole, empty: true, problem: 'too-precise' }
         value = product
       }
-      if (term.round === 'whole') {
+      if (!once && term.round === 'whole') {
         value = roundHalfUp(value, 0)
         roundsWhole = true
-      } else if (term.round === 'two') {
+      } else if (!once && term.round === 'two') {
         value = roundHalfUp(value, 2)
       }
+      parts.push({ sign: term.sign, value })
       total = term.sign === 1 ? add(total, value) : subtract(total, value)
     }
-    return { value: { kind: 'number', value: total }, uses, roundsWhole, empty: reads && !anyValue, problem: null }
+    return { value: { kind: 'number', value: total }, uses, roundsWhole, empty: reads && !anyValue, problem: null, parts }
   }
 
-  private operand(term: Term): { value: Decimal; uses: Evaluated['uses']; roundsWhole: boolean; empty: boolean; problem: CellProblem | null } {
+  private operand(term: Term, once: boolean): { value: Decimal; uses: Evaluated['uses']; roundsWhole: boolean; empty: boolean; problem: CellProblem | null } {
     const of = term.of
     const wrong = (problem: CellProblem, uses: Evaluated['uses'] = [], roundsWhole = false) => ({ value: ZERO, uses, roundsWhole, empty: true, problem })
     if (of.type === 'number') return { value: parseDecimal(of.value)!, uses: [], roundsWhole: false, empty: false, problem: null }
@@ -216,8 +247,9 @@ class Evaluator {
     if (this.stack.includes(of.id)) return wrong(this.stack.at(-1) === of.id ? 'self-reference' : 'loop')
     const referred = this.cell(found.cell)
     if (referred.problem) return wrong(referred.problem === 'self-reference' ? 'loop' : referred.problem, referred.uses, referred.roundsWhole)
-    // The value as written in that cell of the file (a figure already rounded there stays rounded).
-    const number = found.cell.format.type === 'number' ? parseDecimal(referred.text) : asNumber(referred.value)
+    // The value as written in that cell of the file (a figure already rounded there stays rounded),
+    // or, when the total is rounded once, the value before that cell's rounding.
+    const number = found.cell.format.type === 'number' && !once ? parseDecimal(referred.text) : asNumber(referred.value)
     if (number === null) return wrong('not-a-number', referred.uses, referred.roundsWhole)
     return { value: number === 'none' ? ZERO : number, uses: referred.uses, roundsWhole: referred.roundsWhole, empty: referred.empty || number === 'none', problem: null }
   }
@@ -246,8 +278,11 @@ export function templateProblems(body: TemplateBody): Problem[] {
 /** The lines of one company's file for the month, from its saved run. */
 export function buildFile(body: TemplateBody, context: FileContext, employees: readonly EmployeeRow[]): BuiltFile {
   const lines: string[][] = []
+  const originals: string[][] = []
+  const places: LinePlace[] = []
   const problems: Problem[] = []
   const halfNotes: HalfNote[] = []
+  const sumNotes: SumNote[] = []
   const missing: MissingValue[] = []
   const written: number[] = []
   const leftOut: number[] = []
@@ -257,12 +292,17 @@ export function buildFile(body: TemplateBody, context: FileContext, employees: r
   const line = (rowIndex: number, cells: (Cell | null)[], employee: EmployeeRow | null, position: number | null) => {
     const evaluator = new Evaluator(body, context, employee)
     const seen = new Set<string>()
-    return cells.map((cell, column) => {
+    const original: string[] = []
+    const fields = cells.map((cell, column) => {
+      original.push('')
       if (!cell) return ''
       const result = evaluator.cell(cell)
       const name = cellName(rowIndex, column)
       if (result.problem) problems.push({ cell: name, heading: headingOf(body, rowIndex, column), employee: position, kind: result.problem })
       if (cell.required && isMissing(cell, result)) missing.push({ cell: name, heading: headingOf(body, rowIndex, column), employee: position })
+      original[column] = result.value.kind === 'text' ? result.value.text : result.text
+      const sum = position !== null && !result.problem ? disagreement(cell, result) : null
+      if (position !== null && sum) sumNotes.push({ employee: position, cell: name, heading: headingOf(body, rowIndex, column), ...sum })
       if (position !== null && result.roundsWhole) {
         for (const use of result.uses) {
           const key = `${use.key}`
@@ -273,14 +313,20 @@ export function buildFile(body: TemplateBody, context: FileContext, employees: r
       }
       return result.text
     })
+    lines.push(fields)
+    originals.push(original)
+    places.push({ row: rowIndex, kind: employee ? 'employee' : 'employer', employee: position })
   }
 
   body.rows.forEach((row, rowIndex) => {
-    if (row.kind === 'copy') lines.push([...row.cells])
-    else if (row.kind === 'employer') lines.push(line(rowIndex, row.cells, null, null))
-    else for (const index of written) lines.push(line(rowIndex, row.cells, employees[index], index))
+    if (row.kind === 'copy') {
+      lines.push([...row.cells])
+      originals.push([...row.cells])
+      places.push({ row: rowIndex, kind: 'copy', employee: null })
+    } else if (row.kind === 'employer') line(rowIndex, row.cells, null, null)
+    else for (const index of written) line(rowIndex, row.cells, employees[index], index)
   })
-  return { lines, written, leftOut, problems: dedupe(problems), halfNotes, missing }
+  return { lines, originals, places, written, leftOut, problems: dedupe(problems), halfNotes, sumNotes, missing }
 }
 
 /**
@@ -293,6 +339,18 @@ function isMissing(cell: Cell, result: Evaluated): boolean {
   if (result.empty) return true
   const written = parseDecimal(result.text)
   return cell.zeroMissing === true && written !== null && isZero(written)
+}
+
+/** The parts of a calculation rounded as the cell is written, when they miss the total written. */
+function disagreement(cell: Cell, result: Evaluated): Pick<SumNote, 'parts' | 'sum' | 'total'> | null {
+  if (cell.source.type !== 'calc' || cell.format.type !== 'number' || result.empty || (result.parts?.length ?? 0) < 2) return null
+  const places = cell.format.decimals
+  const total = parseDecimal(result.text)
+  if (total === null) return null
+  const parts = result.parts!.map(({ sign, value }) => ({ sign, value: roundHalfUp(value, places) }))
+  const sum = parts.reduce((so, { sign, value }) => (sign === 1 ? add(so, value) : subtract(so, value)), ZERO)
+  if (isZero(subtract(sum, total))) return null
+  return { parts: parts.map(({ sign, value }) => ({ sign, text: toFixed(value, places) })), sum: toFixed(sum, places), total: toFixed(total, places) }
 }
 
 /** A problem with the template itself is found once per employee: list it once. */

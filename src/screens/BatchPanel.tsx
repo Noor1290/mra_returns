@@ -8,7 +8,7 @@ import type { Failure } from '../lib/hubWire'
 import { batchZip, countsOf, downloadChecks, EXCEL_REMINDER, hasChecks, madeAt, requiredLines, sumLines, unwritableLines, type DownloadChecks } from '../lib/report'
 import { isDraft, type BatchCompany } from '../lib/runStore'
 import type { TemplateStore } from '../lib/templateStore'
-import { batchCountText, employeeName, halfNoteText, madeText, notApprovedText, problemText, skipText } from '../lib/wording'
+import { batchCountText, employeeWithId, halfNoteText, madeText, notApprovedText, problemText, skipText } from '../lib/wording'
 import { download } from './ExportPanel'
 import { useTemplates } from './useTemplates'
 
@@ -312,7 +312,7 @@ function CompanyReport({ company, period, another, openProfile }: { company: Com
               <span className="font-semibold">{outcome.template.name}:</span> {outcome.made ? madeText(outcome.path, outcome.file.built.written.length) : skipText(outcome.reason, month)}
             </p>
             {outcome.made && outcome.file.built.leftOut.length > 0 && (
-              <p className="m-0 text-muted">Left out with no pay: {outcome.file.built.leftOut.map((index) => employeeName(employees[index], index)).join(', ')}.</p>
+              <p className="m-0 text-muted">Left out with no pay: {outcome.file.built.leftOut.map((index) => employeeWithId(employees[index], index)).join(', ')}.</p>
             )}
             {outcome.made && outcome.file.problems.length + outcome.file.unwritable.length > 0 && (
               <div className="panel tone-danger" role="alert">
@@ -322,7 +322,7 @@ function CompanyReport({ company, period, another, openProfile }: { company: Com
                   <ul className="m-0 flex list-none flex-col gap-1 p-0">
                     {outcome.file.problems.map((problem, index) => (
                       <li key={`p${index}`}>
-                        {problem.employee !== null ? `${employeeName(employees[problem.employee], problem.employee)}: ` : ''}
+                        {problem.employee !== null ? `${employeeWithId(employees[problem.employee], problem.employee)}: ` : ''}
                         {problemText(problem)}
                       </li>
                     ))}
@@ -355,7 +355,7 @@ function CompanyReport({ company, period, another, openProfile }: { company: Com
                 <ul className="m-0 mt-2 flex list-none flex-col gap-1 p-0">
                   {outcome.file.built.halfNotes.map((note, index) => (
                     <li key={index}>
-                      {employeeName(employees[note.employee], note.employee)}: {halfNoteText(note)}
+                      {employeeWithId(employees[note.employee], note.employee)}: {halfNoteText(note)}
                     </li>
                   ))}
                 </ul>

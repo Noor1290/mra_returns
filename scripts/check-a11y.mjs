@@ -7,7 +7,7 @@
 // The screens inside the dashboard are checked for names and contrast by check-bridge.mjs.
 // Run after `npm run build`: node scripts/check-a11y.mjs
 import { chromium } from 'playwright'
-import { lowContrast, unnamedControls } from './lib/a11y-page.mjs'
+import { lowContrast, unnamedControls, settled } from './lib/a11y-page.mjs'
 import { startPreview } from './lib/preview-server.mjs'
 import { walkTemplates } from './lib/template-walk.mjs'
 
@@ -65,12 +65,11 @@ try {
 
     // The theme switch works in both directions and is a real, named button.
     await page.getByRole('button', { name: theme === 'dark' ? 'Light theme' : 'Dark theme' }).click()
-    // Let the 150ms colour transitions finish, however busy the machine is.
-    await page.waitForTimeout(400)
+    await page.evaluate(settled)
     await checkScreen(page, `${theme} switched`, 'fake sample')
     // Every screen and dialog of the files and templates.
     await walkTemplates(page, async (name) => {
-      await page.waitForTimeout(400)
+      await page.evaluate(settled)
       await checkScreen(page, `${theme} switched`, name)
     })
     await context.close()

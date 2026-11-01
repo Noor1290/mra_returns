@@ -9,7 +9,7 @@ import { downloadChecks, EXCEL_REMINDER, hasChecks, requiredLines, sumLines, unw
 import { fileBytes, makeReturnFile } from '../lib/returnFile'
 import { isDraft, type SavedRun } from '../lib/runStore'
 import type { TemplateStore } from '../lib/templateStore'
-import { employeeName, halfNoteText, notApprovedText, problemText } from '../lib/wording'
+import { employeeWithId, halfNoteText, notApprovedText, problemText } from '../lib/wording'
 import { useTemplates } from './useTemplates'
 
 /** Hands a file to the browser as a download. Made in memory; nothing is kept. */
@@ -107,7 +107,7 @@ export function ExportPanel({ store, run, version, onOpenProfile }: { store: Tem
               </p>
               <p className="m-0 text-sm text-muted" data-testid="export-counts">
                 {written.length} {written.length === 1 ? 'employee' : 'employees'} in the file.
-                {leftOut.length > 0 && ` Left out with no pay: ${leftOut.map((index) => employeeName(run.employees[index], index)).join(', ')}.`}
+                {leftOut.length > 0 && ` Left out with no pay: ${leftOut.map((index) => employeeWithId(run.employees[index], index)).join(', ')}.`}
               </p>
               {(file.problems.length > 0 || file.unwritable.length > 0) && (
                 <div className="panel tone-danger" role="alert" data-testid="export-problems">
@@ -117,7 +117,7 @@ export function ExportPanel({ store, run, version, onOpenProfile }: { store: Tem
                     <ul className="m-0 flex list-none flex-col gap-1 p-0 text-sm">
                       {file.problems.map((problem, index) => (
                         <li key={`p${index}`}>
-                          {problem.employee !== null ? `${employeeName(run.employees[problem.employee], problem.employee)}: ` : ''}
+                          {problem.employee !== null ? `${employeeWithId(run.employees[problem.employee], problem.employee)}: ` : ''}
                           {problemText(problem)}
                         </li>
                       ))}
@@ -150,7 +150,7 @@ export function ExportPanel({ store, run, version, onOpenProfile }: { store: Tem
                   <ul className="m-0 mt-2 flex list-none flex-col gap-1 p-0">
                     {halfNotes.map((note, index) => (
                       <li key={index}>
-                        {employeeName(run.employees[note.employee], note.employee)}: {halfNoteText(note)}
+                        {employeeWithId(run.employees[note.employee], note.employee)}: {halfNoteText(note)}
                       </li>
                     ))}
                   </ul>

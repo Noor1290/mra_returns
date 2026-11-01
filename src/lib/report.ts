@@ -13,7 +13,6 @@ import { makeZip } from './zip'
 import {
   batchCountText,
   detailsMissingText,
-  employeeName,
   employeeWithId,
   halfNoteText,
   madeText,
@@ -107,10 +106,10 @@ export function reportLines(result: BatchResult): string[] {
       }
       const { built, problems } = outcome.file
       lines.push(`  ${outcome.template.name}: ${madeText(outcome.path, built.written.length)}`)
-      if (built.leftOut.length > 0) lines.push(`    Left out with no pay: ${built.leftOut.map((index) => employeeName(employees[index], index)).join(', ')}.`)
+      if (built.leftOut.length > 0) lines.push(`    Left out with no pay: ${built.leftOut.map((index) => employeeWithId(employees[index], index)).join(', ')}.`)
       if (problems.length > 0) {
         lines.push('    Check these before uploading the file:')
-        for (const problem of problems) lines.push(`      ${problem.employee !== null ? `${employeeName(employees[problem.employee], problem.employee)}: ` : ''}${problemText(problem)}`)
+        for (const problem of problems) lines.push(`      ${problem.employee !== null ? `${employeeWithId(employees[problem.employee], problem.employee)}: ` : ''}${problemText(problem)}`)
       }
       if (outcome.file.unwritable.length > 0) {
         lines.push('    Fixed in this file only (the payroll is not changed):')
@@ -122,7 +121,7 @@ export function reportLines(result: BatchResult): string[] {
       }
       if (built.halfNotes.length > 0) {
         lines.push('    Values that end in exactly .50 before rounding (check them in Payroll System):')
-        for (const note of built.halfNotes) lines.push(`      ${employeeName(employees[note.employee], note.employee)}: ${halfNoteText(note)}`)
+        for (const note of built.halfNotes) lines.push(`      ${employeeWithId(employees[note.employee], note.employee)}: ${halfNoteText(note)}`)
       }
       if (built.sumNotes.length > 0) {
         lines.push("    Lines where the rounded parts don't add up to the total (check them before uploading):")

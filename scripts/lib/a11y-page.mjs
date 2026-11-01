@@ -28,6 +28,18 @@ export function unnamedControls() {
 }
 
 /** Runs in the page: text whose contrast against its background is below AA. */
+/**
+ * Waits until nothing on the page is changing: every transition and every animation that ends.
+ * A wait of a fixed time is not enough, because the browser only starts a transition's clock on
+ * its next frame, which a busy headless browser can be slow to draw. Colours measured before
+ * that are the old theme's text on the new theme's background. Run with page.evaluate.
+ */
+export async function settled() {
+  await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+  const finite = document.getAnimations().filter((one) => one.effect?.getComputedTiming().endTime !== Infinity)
+  await Promise.all(finite.map((one) => one.finished.catch(() => {})))
+}
+
 export function lowContrast() {
   const parse = (value) => {
     const probe = document.createElement('canvas').getContext('2d')

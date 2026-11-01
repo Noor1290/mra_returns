@@ -205,14 +205,6 @@
       "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: files"
     },
     {
-      "text": "text: DOE JANE (row 1): CSG is 562.5 in the saved run (cell J5).",
-      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: files"
-    },
-    {
-      "text": "text: DOE JANE (row 1): Employee NSF is 187.5 in the saved run (cell K5).",
-      "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: files"
-    },
-    {
       "text": "text: MRA PRGF",
       "why": "approved by the owner 28 Oct 2026 (Stage 1); seen on: on its own: files"
     },
@@ -933,14 +925,6 @@
       "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
     },
     {
-      "text": "text: SAMPLE ANNE (row 1): CSG is 562.5 in the saved run (cell J5).",
-      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
-    },
-    {
-      "text": "text: SAMPLE ANNE (row 1): Employee NSF is 187.5 in the saved run (cell K5).",
-      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
-    },
-    {
       "text": "text: Skipped: this company does not use this template.",
       "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
     },
@@ -1073,23 +1057,7 @@
       "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
     },
     {
-      "text": "text: SAMPLE Paul, Jr (row 1): CSG is 562.5 in the saved run (cell J5).",
-      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
-    },
-    {
-      "text": "text: SAMPLE Paul, Jr (row 1): Employee NSF is 187.5 in the saved run (cell K5).",
-      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
-    },
-    {
       "text": "text: Made: MRA PRGF/PRGF AUGUST 2026 JKL LTD.csv, 3 employees.",
-      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
-    },
-    {
-      "text": "text: TEST CARA (row 3): New Basic Salary is 20000.5 in the saved run (cell G5).",
-      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
-    },
-    {
-      "text": "text: TEST CARA (row 3): Allowances is 1000.5 in the saved run (cell H5).",
       "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
     },
     {
@@ -1131,6 +1099,46 @@
     {
       "text": "text: Each part uses its exact value, before rounding. The total is then rounded as set under \"How it is written\".",
       "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: cell: a calculation, rounded once"
+    },
+    {
+      "text": "text: 1 of 4 companies chosen.",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 2); seen on: its own: files"
+    },
+    {
+      "text": "text: DOE JANE (ID X0000000000001, row 1): CSG is 562.5 in the saved run (cell J5).",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes); seen on: on its own: files"
+    },
+    {
+      "text": "text: DOE JANE (ID X0000000000001, row 1): Employee NSF is 187.5 in the saved run (cell K5).",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes); seen on: on its own: files"
+    },
+    {
+      "text": "text: SAMPLE ANNE (ID X0000000000011, row 1): CSG is 562.5 in the saved run (cell J5).",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: SAMPLE ANNE (ID X0000000000011, row 1): Employee NSF is 187.5 in the saved run (cell K5).",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: SAMPLE Paul, Jr (ID X0000000000021, row 1): CSG is 562.5 in the saved run (cell J5).",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: SAMPLE Paul, Jr (ID X0000000000021, row 1): Employee NSF is 187.5 in the saved run (cell K5).",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: TEST CARA (ID X0000000000023, row 3): New Basic Salary is 20000.5 in the saved run (cell G5).",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: TEST CARA (ID X0000000000023, row 3): Allowances is 1000.5 in the saved run (cell H5).",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes); seen on: on its own: batch: report"
+    },
+    {
+      "text": "text: 1 of 2 companies chosen.",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes); seen on: dashboard: several companies"
     }
   ]
 }

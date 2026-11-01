@@ -8,6 +8,6 @@ The saved run keeps 2 decimals. A figure stored as 562.50 may itself have been r
 
 Not the same thing as "round each, then add", which the MRA files need on purpose: round(278.19) + round(556.38) = 278 + 556 = 834, while rounding the total 834.57 would give 835.
 
-## check:a11y sometimes fails on the light theme
+## check:a11y failed about one run in three (fixed 1 Nov 2026)
 
-`[light switched] fake sample: low contrast 2.58:1 "Light theme"` and `2.43:1 "Close the sample data"` appear in about one run in three, with no change in between (1 Nov 2026; also seen once on 29 Oct). The same two buttons pass on the next run, so it looks like the colours being measured during the 150 ms transition after the switch, not a real contrast problem. Not proved, and the check was left as it is.
+`[light switched] fake sample: low contrast 2.58:1 "Light theme"` and `2.43:1 "Close the sample data"`. Not a real contrast problem: the check measured the colours during the 150 ms fade after the theme switch, seeing the old theme's grey on the new theme's background. Those two ghost buttons are what showed it. A browser starts a transition's clock only on its next frame, and a busy headless browser can be slow to draw one: at 100 ms a fade had `currentTime` 0, and at 300 ms one run had reached only 117 ms of it, so the fixed wait of 400 ms was no guarantee. The check now waits for every transition and animation that ends to finish (`settled`, `scripts/lib/a11y-page.mjs`).

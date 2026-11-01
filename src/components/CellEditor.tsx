@@ -159,7 +159,7 @@ function CalcEditor({
           <option value="parts">Part by part, as set below</option>
           <option value="once">Add the exact values, round the total once</option>
         </select>
-        {once && <span className="field-hint">Other cells count with their value before rounding. The total is rounded as set under How it is written.</span>}
+        {once && <span className="field-hint">Each part uses its exact value, before rounding. The total is then rounded as set under "How it is written".</span>}
       </label>
       {terms.map((term, index) => (
         <div key={index} className="flex flex-col gap-2 border-b border-line pb-3 last:border-b-0 last:pb-0" data-testid="calc-part">

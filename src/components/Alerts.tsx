@@ -97,14 +97,14 @@ export function BeforeDownload({ checks, onDownload, onClose }: { checks: Downlo
   )
 }
 
-const SUMS_HINT = 'The total is the exact sum rounded once, so it can differ from the rounded parts beside it. The portal may add them up.'
+const SUMS_HINT = 'The total is the exact sum rounded once, so it can differ from the rounded parts beside it. If the MRA portal adds them up itself, it could see a 1-rupee difference.'
 
 /** Under a file: the lines whose rounded parts do not add up to their total, like the .50 list. */
 export function SumNotes({ lines, testId }: { lines: string[]; testId: string }) {
   return (
     <details className="rounded-lg border border-line p-3 text-sm" data-testid={testId}>
       <summary className="cursor-pointer font-semibold">
-        {lines.length} {lines.length === 1 ? "line's rounded parts don't" : "lines' rounded parts don't"} add up to the total
+        {lines.length} {lines.length === 1 ? 'line' : 'lines'} where the rounded parts don't add up to the total
       </summary>
       <p className="m-0 mt-2 text-muted">{SUMS_HINT}</p>
       <ul className="m-0 mt-2 flex list-none flex-col gap-1 p-0">

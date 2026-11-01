@@ -89,7 +89,7 @@ export function sumNoteText(note: SumNote): string {
   return `${where}: the rounded parts ${parts} make ${note.sum}, but the total is ${note.total}.`
 }
 
-/** "DOE PAUL, ID X0000000000001 (row 2), Other names: Paul, Jr to Paul Jr": who, column, change. */
+/** "DOE PAUL (ID X0000000000001, row 2), Other names: Paul, Jr to Paul Jr": who, column, change. */
 export function unwritableText(one: Unwritable, employees: readonly Record<string, unknown>[]): string {
   const who = one.kind === 'employee' ? employeeWithId(employees[one.employee!], one.employee!) : one.kind === 'employer' ? 'Employer row' : 'Copied row'
   const column = one.heading || one.cell
@@ -139,12 +139,12 @@ export function batchCountText(made: number, skipped: number): string {
   return `Made: ${made} ${made === 1 ? 'file' : 'files'}. Skipped: ${skipped}.`
 }
 
-/** An employee by name and ID, as the required-value lists name them: "DOE JANE, ID X0000000000001 (row 1)". */
+/** An employee by name, with the ID and row in brackets: "DOE JANE (ID X0000000000001, row 1)". */
 export function employeeWithId(row: Record<string, unknown> | undefined, index: number): string {
   const id = typeof row?.ID === 'string' ? row.ID.trim() : ''
   const name = employeeName(row, index)
   if (id === '') return name
-  return name.startsWith('Row ') ? `ID ${id} (row ${index + 1})` : name.replace(/ \(row \d+\)$/, `, ID ${id} (row ${index + 1})`)
+  return name.startsWith('Row ') ? `ID ${id} (row ${index + 1})` : name.replace(/ \(row \d+\)$/, ` (ID ${id}, row ${index + 1})`)
 }
 
 /** An employee of the saved run, as the lists name them: "DOE JANE (row 1)". */

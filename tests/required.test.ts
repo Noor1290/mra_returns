@@ -106,7 +106,7 @@ describe('required cells', () => {
       'ID X0000000000002 (row 2): D2 (CSG amount) is required and has no value.',
       'POE (row 3): A2 (Employee ID) is required and has no value.',
     ])
-    expect(employeeWithId(FAKE_EMPLOYEES[0], 0)).toBe('DOE JANE ANN, ID X0000000000001 (row 1)')
+    expect(employeeWithId(FAKE_EMPLOYEES[0], 0)).toBe('DOE JANE ANN (ID X0000000000001, row 1)')
   })
 
   it('never changes a byte of the file', () => {

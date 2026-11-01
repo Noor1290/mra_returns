@@ -885,10 +885,6 @@
       "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: files"
     },
     {
-      "text": "text: 3 of 3 companies chosen.",
-      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: files"
-    },
-    {
       "text": "text: Make the zip",
       "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: files"
     },
@@ -897,23 +893,11 @@
       "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: no company matches"
     },
     {
-      "text": "text: 0 of 3 companies chosen.",
-      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: none chosen"
-    },
-    {
-      "text": "text: Company 1 of 3:",
-      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: progress"
-    },
-    {
       "text": "aria-label: Companies done",
       "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: progress"
     },
     {
       "text": "text: Report",
-      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
-    },
-    {
-      "text": "text: Made: 3 files. Skipped: 3.",
       "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
     },
     {
@@ -949,18 +933,6 @@
       "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
     },
     {
-      "text": "text: Employer row: A3 (Employer Registration Number) is required and has no value.",
-      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
-    },
-    {
-      "text": "text: Employer row: G3 (Name of Declarant) is required and has no value.",
-      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
-    },
-    {
-      "text": "text: BEN, ID X0000000000012 (row 2): B5 (Surname of Employee) is required and has no value.",
-      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
-    },
-    {
       "text": "text: SAMPLE ANNE (row 1): CSG is 562.5 in the saved run (cell J5).",
       "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
     },
@@ -970,10 +942,6 @@
     },
     {
       "text": "text: Skipped: this company does not use this template.",
-      "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
-    },
-    {
-      "text": "text: MRA details missing: Employer Registration Number (ERN), Telephone number, Mobile number, Name of declarant.",
       "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: on its own: batch: report"
     },
     {
@@ -1071,6 +1039,98 @@
     {
       "text": "text: Open its Company profile",
       "why": "approved by the owner 29 Oct 2026 (Stage 2); seen on: dashboard: several companies, report"
+    },
+    {
+      "text": "text: 4 of 4 companies chosen.",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: files"
+    },
+    {
+      "text": "text: 0 of 4 companies chosen.",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: none chosen"
+    },
+    {
+      "text": "text: Company 1 of 4:",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: progress"
+    },
+    {
+      "text": "text: Made: 5 files. Skipped: 3.",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
+    },
+    {
+      "text": "text: MRA details missing: Employer Registration Number (ERN), Name of declarant.",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
+    },
+    {
+      "text": "text: JKL Ltd, BRN C5555555",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
+    },
+    {
+      "text": "text: Made: MRA CSG (PACO)/CSG AUGUST 2026 JKL LTD.csv, 3 employees.",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
+    },
+    {
+      "text": "text: Check these before uploading the file",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
+    },
+    {
+      "text": "text: SAMPLE Paul, Jr (row 1): CSG is 562.5 in the saved run (cell J5).",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
+    },
+    {
+      "text": "text: SAMPLE Paul, Jr (row 1): Employee NSF is 187.5 in the saved run (cell K5).",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
+    },
+    {
+      "text": "text: Made: MRA PRGF/PRGF AUGUST 2026 JKL LTD.csv, 3 employees.",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
+    },
+    {
+      "text": "text: TEST CARA (row 3): New Basic Salary is 20000.5 in the saved run (cell G5).",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
+    },
+    {
+      "text": "text: TEST CARA (row 3): Allowances is 1000.5 in the saved run (cell H5).",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
+    },
+    {
+      "text": "text: 1 line where the rounded parts don't add up to the total",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
+    },
+    {
+      "text": "text: The total is the exact sum rounded once, so it can differ from the rounded parts beside it. If the MRA portal adds them up itself, it could see a 1-rupee difference.",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: batch: report"
+    },
+    {
+      "text": "text: 4 values can't be written in the file",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: dialog: values that cannot be written"
+    },
+    {
+      "text": "text: Nothing is downloaded until you choose. Go back to correct it in Payroll System, or fix it in this file only.",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: dialog: values that cannot be written"
+    },
+    {
+      "text": "text: Fix in this file only",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: dialog: values that cannot be written"
+    },
+    {
+      "text": "text: Lines where the rounded parts don't add up to the total",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: dialog: required values"
+    },
+    {
+      "text": "text: Rounding",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: cell: a calculation"
+    },
+    {
+      "text": "text: Part by part, as set below",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: cell: a calculation"
+    },
+    {
+      "text": "text: Add the exact values, round the total once",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: cell: a calculation"
+    },
+    {
+      "text": "text: Each part uses its exact value, before rounding. The total is then rounded as set under \"How it is written\".",
+      "why": "approved by the owner 1 Nov 2026 (MRA fixes Stage 1); seen on: its own: cell: a calculation, rounded once"
     }
   ]
 }

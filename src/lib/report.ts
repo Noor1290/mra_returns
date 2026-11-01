@@ -14,6 +14,7 @@ import {
   batchCountText,
   detailsMissingText,
   employeeName,
+  employeeWithId,
   halfNoteText,
   madeText,
   missingText,
@@ -53,7 +54,7 @@ export function unwritableLines(file: ReturnFile, employees: readonly Record<str
 
 /** The lines of one file whose rounded parts do not add up to their total. */
 export function sumLines(file: ReturnFile, employees: readonly Record<string, unknown>[]): string[] {
-  return file.built.sumNotes.map((note) => `${employeeName(employees[note.employee], note.employee)}: ${sumNoteText(note)}`)
+  return file.built.sumNotes.map((note) => `${employeeWithId(employees[note.employee], note.employee)}: ${sumNoteText(note)}`)
 }
 
 /** One file, as the lists before a download title it. */

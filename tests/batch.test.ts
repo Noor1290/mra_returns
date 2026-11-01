@@ -170,7 +170,7 @@ describe('several companies in one zip', () => {
       '    Required values that are empty:',
       '      Employer row: A3 (Employer Registration Number) is required and has no value.',
       '      Employer row: G3 (Name of Declarant) is required and has no value.',
-      '      RICHARD, ID X0000000000002 (row 2): B5 (Surname of Employee) is required and has no value.',
+      '      RICHARD (ID X0000000000002, row 2): B5 (Surname of Employee) is required and has no value.',
       '    Values that end in exactly .50 before rounding (check them in Payroll System):',
       '      DOE JANE ANN (row 1): CSG is 562.5 in the saved run (cell J5).',
       '      DOE JANE ANN (row 1): Employee NSF is 187.5 in the saved run (cell K5).',

@@ -75,8 +75,8 @@ describe('P1: fixing a value in the file only', () => {
       { ID: 'X0000000000003', Surname: 'Mihai\u0219or', 'Other names': 'Alex' },
     ])
     expect(unwritableLines(file, [{ ID: 'X0000000000001', Surname: 'Doe' }, { ID: 'X0000000000002', Surname: 'Roe', 'Other names': 'Paul, Jr' }, { ID: 'X0000000000003', Surname: 'Mihai\u0219or', 'Other names': 'Alex' }])).toEqual([
-      'Roe Paul, Jr, ID X0000000000002 (row 2), Other names: Paul, Jr \u2192 Paul Jr',
-      'Mihai\u0219or Alex, ID X0000000000003 (row 3), Surname: Mihai\u0219or \u2192 MIHAISOR',
+      'Roe Paul, Jr (ID X0000000000002, row 2), Other names: Paul, Jr \u2192 Paul Jr',
+      'Mihai\u0219or Alex (ID X0000000000003, row 3), Surname: Mihai\u0219or \u2192 MIHAISOR',
     ])
     expect(unwritableLines(file, []).join()).not.toMatch(/Line \d|field \d/)
   })
@@ -100,7 +100,7 @@ describe('P1: fixing a value in the file only', () => {
     expect(file.fixedBytes).toBeNull()
     const checks = downloadChecks([{ title: 'ABC Co Ltd, MRA PRGF', file, employees: [{ ID: 'X1', Surname: 'Doe' }] }])
     expect(checks.canFix).toBe(false)
-    expect(checks.unwritable[0].lines).toEqual(['Doe, ID X1 (row 1), Other names: Wei \u738b has a character with no plain letter.'])
+    expect(checks.unwritable[0].lines).toEqual(['Doe (ID X1, row 1), Other names: Wei \u738b has a character with no plain letter.'])
   })
 
   it('names the company for a value in the employer row', () => {
@@ -265,7 +265,7 @@ describe('P4: the lines whose rounded parts do not add up to the total', () => {
     expect(checks.sums).toEqual([
       {
         title: 'ABC Co Ltd, MRA PRGF',
-        lines: ['DOE JANE (row 1): J5 (Total Remuneration on which PRGF contribution amount is calculated (MUR) (MUR)): the rounded parts 20001 + 1001 + 0 make 21002, but the total is 21001.'],
+        lines: ['DOE JANE (ID X1, row 1): J5 (Total Remuneration on which PRGF contribution amount is calculated (MUR) (MUR)): the rounded parts 20001 + 1001 + 0 make 21002, but the total is 21001.'],
       },
     ])
   })
@@ -289,7 +289,7 @@ describe('P1, P4 and P11 in the report and the zip', () => {
     const lines = reportLines(result)
     expect(lines).toContain('  August 2026 isn\'t approved in the dashboard for ABC Co Ltd.')
     expect(lines).toContain('    Fixed in this file only (the payroll is not changed):')
-    expect(lines).toContain('      Doe Paul, Jr, ID X1 (row 1), Other Names of Employee: Paul, Jr \u2192 PAUL JR')
+    expect(lines).toContain('      Doe Paul, Jr (ID X1, row 1), Other Names of Employee: Paul, Jr \u2192 PAUL JR')
     expect(lines).toContain("    Lines where the rounded parts don't add up to the total (check them before uploading):")
     expect(lines.join('\n')).toContain('the rounded parts 20001 + 1001 + 0 make 21002, but the total is 21001.')
   })

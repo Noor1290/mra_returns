@@ -29,6 +29,8 @@ export interface Problem {
   /** Which employee, by position in the saved run (from 0), when it is about one. */
   employee: number | null
   kind: CellProblem
+  /** For a value that cannot be read (not a date, not a number): the value, as the run holds it. */
+  value?: string
 }
 
 export type CellProblem =
@@ -120,9 +122,24 @@ const located = (body: TemplateBody) => {
   return where
 }
 
+const loose = (text: string) => text.trim().replace(/\s+/g, ' ').toLowerCase()
+
+/**
+ * A field of an employee's row, found by its name whatever the capitals and spaces, as the
+ * payslip app finds it: a template naming "Date of employment" reads the dashboard's "Date of
+ * Employment". The exact name wins when the row has both.
+ */
+export function fieldOf(row: EmployeeRow | null | undefined, key: string): unknown {
+  if (!row) return undefined
+  if (key in row) return row[key]
+  const wanted = loose(key)
+  const found = Object.keys(row).find((name) => loose(name) === wanted)
+  return found === undefined ? undefined : row[found]
+}
+
 /** Whether a row's value in this column means "no pay": missing, empty, or 0. */
 export function hasNoPay(row: EmployeeRow, key: string): boolean {
-  const value = asNumber(valueOf(row[key]))
+  const value = asNumber(valueOf(fieldOf(row, key)))
   if (value === 'none') return true
   return value !== null && isZero(value)
 }
@@ -180,13 +197,12 @@ class Evaluator {
       case 'month':
         return plain(monthValue(this.context.period))
       case 'employee': {
-        const value = valueOf(this.employee?.[source.key])
+        const value = valueOf(fieldOf(this.employee, source.key))
         return { value, uses: value.kind === 'number' ? [{ key: source.key, value: value.value }] : [], roundsWhole: false, empty: value.kind === 'none', problem: null }
       }
       case 'map': {
-        const loose = (text: string) => text.trim().replace(/\s+/g, ' ').toLowerCase()
-        const raw = valueOf(this.employee?.[source.key])
-        const wanted = raw.kind === 'text' ? loose(raw.text) : raw.kind === 'number' ? loose(String(this.employee?.[source.key])) : ''
+        const raw = valueOf(fieldOf(this.employee, source.key))
+        const wanted = raw.kind === 'text' ? loose(raw.text) : raw.kind === 'number' ? loose(String(fieldOf(this.employee, source.key))) : ''
         const pair = wanted === '' ? undefined : source.pairs.find((one) => loose(one.from) === wanted)
         const text = pair ? pair.to : source.otherwise
         return plain(text === '' ? NONE : { kind: 'text', text })
@@ -236,7 +252,7 @@ class Evaluator {
     const wrong = (problem: CellProblem, uses: Evaluated['uses'] = [], roundsWhole = false) => ({ value: ZERO, uses, roundsWhole, empty: true, problem })
     if (of.type === 'number') return { value: parseDecimal(of.value)!, uses: [], roundsWhole: false, empty: false, problem: null }
     if (of.type === 'column') {
-      const number = asNumber(valueOf(this.employee?.[of.key]))
+      const number = asNumber(valueOf(fieldOf(this.employee, of.key)))
       if (number === null) return wrong('not-a-number')
       const value = number === 'none' ? ZERO : number
       return { value, uses: number === 'none' ? [] : [{ key: of.key, value }], roundsWhole: false, empty: number === 'none', problem: null }
@@ -298,7 +314,10 @@ export function buildFile(body: TemplateBody, context: FileContext, employees: r
       if (!cell) return ''
       const result = evaluator.cell(cell)
       const name = cellName(rowIndex, column)
-      if (result.problem) problems.push({ cell: name, heading: headingOf(body, rowIndex, column), employee: position, kind: result.problem })
+      if (result.problem) {
+        const unread = (result.problem === 'not-a-date' || result.problem === 'not-a-number') && result.value.kind === 'text' ? result.value.text : undefined
+        problems.push({ cell: name, heading: headingOf(body, rowIndex, column), employee: position, kind: result.problem, ...(unread === undefined ? {} : { value: unread }) })
+      }
       if (cell.required && isMissing(cell, result)) missing.push({ cell: name, heading: headingOf(body, rowIndex, column), employee: position })
       original[column] = result.value.kind === 'text' ? result.value.text : result.text
       const sum = position !== null && !result.problem ? disagreement(cell, result) : null

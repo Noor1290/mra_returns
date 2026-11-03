@@ -8,6 +8,10 @@ The saved run keeps 2 decimals. A figure stored as 562.50 may itself have been r
 
 Not the same thing as "round each, then add", which the MRA files need on purpose: round(278.19) + round(556.38) = 278 + 556 = 834, while rounding the total 834.57 would give 835.
 
+## The start date of employment came out empty for everyone (fixed 3 Nov 2026)
+
+Found by the owner on the live site. The dashboard keeps the date per employee, whatever the payroll app called it, and sends it in every run's rows as "Date of Employment" (capital E), YYYY-MM-DD: from an identity field of type Date, from an older text column "Date of employment" (Payroll System sends it as YYYY-MM-DD), from the Data explorer, in a run sent before or after the date column. The template named it "Date of employment", as the company's column setup does and as the list offered it. A cell's field was looked up by its exact name, so nothing was found, and nothing said so. Now a field is found whatever the capitals and spaces, as the payroll app's payslips find it; a date is read as YYYY-MM-DD, YYYYMMDD or day first with "/", "-" or "."; a value that is there but cannot be read as a date or a number is listed before the download; and the dashboard lists the field as "Date of Employment". Tests: `tests/dateOfEmployment.test.ts`, `npm run check:fixes`, and in the hub `mraBatch.test.tsx`.
+
 ## The lists of a cell offered only "ID", or "Basic Salary" and "New Basic Salary" (fixed 3 Nov 2026)
 
 Found by the owner on the live site. The lists were text boxes with suggestions (`<input list>` and a `<datalist>`), and a browser shows only the suggestions that contain what is already in the box: a cell holding "ID" offered only "ID", one holding "Basic Salary" only "Basic Salary" and "New Basic Salary". The suggestions themselves were a fixed sample list, with the keys of a fetched run added. They are now drop-down lists of the company's own fields, from the dashboard before any month is asked for (`mra-batch` `overview`; `src/lib/fields.ts`). Tests: `tests/fields.test.ts`, and in the browser `npm run check:fixes`.

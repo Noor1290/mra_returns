@@ -44,13 +44,17 @@ function realDate(year: number, month: number, day: number): CalendarDate | null
     : null
 }
 
-/** A date written YYYY-MM-DD (as the dashboard sends dates), DD/MM/YYYY or YYYYMMDD. */
+/**
+ * A date written YYYY-MM-DD (as the dashboard sends dates), YYYYMMDD, or day first as the payroll
+ * app and the payslip app read it: DD/MM/YYYY, also 1/8/2026, or with "-" or "." between. Nothing
+ * is guessed: no two-digit year, no month first.
+ */
 export function parseDate(text: string): CalendarDate | null {
   const value = text.trim()
   let match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value) ?? /^(\d{4})(\d{2})(\d{2})$/.exec(value)
   if (match) return realDate(Number(match[1]), Number(match[2]), Number(match[3]))
-  match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value)
-  if (match) return realDate(Number(match[3]), Number(match[2]), Number(match[1]))
+  match = /^(\d{1,2})([/.-])(\d{1,2})\2(\d{4})$/.exec(value)
+  if (match) return realDate(Number(match[4]), Number(match[3]), Number(match[1]))
   return null
 }
 

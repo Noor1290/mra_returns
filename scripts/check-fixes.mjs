@@ -128,6 +128,42 @@ try {
   check(readFileSync(await checked.path()).toString('latin1').includes('X0000000000002,ROE,21001\r\n'), 'P4: the file does not hold the total rounded once.')
   await sums.page.close()
 
+  // mra-date-fix: a start date named "Date of employment", as the company's setup names it, is
+  // found in the dashboard's "Date of Employment"; one that cannot be read stops the download.
+  const dated = await openEmbedded(
+    context,
+    `(hub) => {
+      hub.state.templates.push({
+        template_id: '00000000-0000-4000-8000-0000000097f0', name: 'MRA PRGF', revision: 1, history: [],
+        body: { format: 'mra-returns-template', version: 1, width: 2,
+          rows: [
+            { kind: 'copy', cells: ['Employee ID', 'Start Date of Employment'] },
+            { kind: 'employee', cells: [
+              { id: 'e0', source: { type: 'employee', key: 'ID', group: 'identity' }, format: { type: 'text', capitals: false, tidy: false } },
+              { id: 'e5', source: { type: 'employee', key: 'Date of employment', group: 'identity' }, format: { type: 'date', pattern: 'YYYYMMDD' } },
+            ] },
+          ],
+          settings: { encoding: 'windows-1252', lineEnding: 'crlf', separator: ',', quotes: 'never', pad: true },
+          fileName: { pattern: 'PRGF {MONTH} {YYYY} {COMPANY}', capitals: true }, noPay: null },
+        companies: [{ brn: 'C1234567', own_values: {}, values_revision: 1 }],
+      })
+      hub.state.companies[0].runs['2026-08'][1]['Date of Employment'] = '31/02/2020'
+    }`,
+  )
+  await dated.app.getByLabel('Month').first().selectOption({ label: 'August 2026' })
+  await dated.app.getByRole('button', { name: 'Get the saved run' }).click()
+  await dated.app.getByTestId('export-file').waitFor()
+  const datedDownloads = downloads(dated.page)
+  await dated.app.getByRole('button', { name: 'Download the file' }).click()
+  const unreadable = (await dated.app.getByTestId('unreadable-dialog').textContent()) ?? ''
+  check(unreadable.includes('ABC Co Ltd, MRA PRGF'), 'Dates: the list does not name the company and the file.')
+  check(unreadable.includes('ROE RICHARD (ID X0000000000002, row 2): B2 (Start Date of Employment) is "31/02/2020"'), `Dates: the date that cannot be read is not listed: ${unreadable}`)
+  check(datedDownloads.length === 0, 'Dates: the file was downloaded before the date was shown.')
+  const [withDates] = await Promise.all([dated.page.waitForEvent('download'), dated.app.getByRole('button', { name: 'Download', exact: true }).click()])
+  const datedFile = readFileSync(await withDates.path()).toString('latin1')
+  check(datedFile.includes('X0000000000001,20200201\r\nX0000000000002,\r\nX0000000000003,20200201\r\n'), `Dates: the file does not hold the start dates: ${JSON.stringify(datedFile)}`)
+  await dated.page.close()
+
   // The lists: the company's own fields, before any month is fetched. Set up like the owner's.
   const IDENTITY = ['ID', 'Surname', 'Other names', 'Date of Employment', 'Department']
   const COLUMNS = ['Basic Salary', 'Govt Increment', 'New Basic Salary', 'Full time / Part time', 'Allowances', 'Emoluments', 'Travelling', 'Gross Pay', 'Age 60+', 'Employee CSG', 'Employee NSF', 'PAYE', 'Total deductions', 'Net Pay', 'CSG', 'NSF', 'Levy', 'PRGF', 'Total MRA contributions', 'EDF', 'Bonus']

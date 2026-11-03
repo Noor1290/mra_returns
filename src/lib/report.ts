@@ -51,6 +51,21 @@ export function unwritableLines(file: ReturnFile, employees: readonly Record<str
   return file.unwritable.map((one) => unwritableText(one, employees))
 }
 
+/**
+ * The values one file holds that cannot be read as the cell needs (a date, a number), so they
+ * are left empty: who, which column, and the value. Never silently empty (mra-date-fix).
+ */
+export function unreadableLines(file: ReturnFile, employees: readonly Record<string, unknown>[]): string[] {
+  return file.problems
+    .filter((problem) => problem.value !== undefined)
+    .map((problem) => {
+      const where = problem.heading ? `${problem.cell} (${problem.heading})` : problem.cell
+      const what = problem.kind === 'not-a-date' ? 'a date' : 'a number'
+      const who = problem.employee !== null ? `${employeeWithId(employees[problem.employee], problem.employee)}: ` : ''
+      return `${who}${where} is "${problem.value}", which can't be read as ${what}, so it is left empty.`
+    })
+}
+
 /** The lines of one file whose rounded parts do not add up to their total. */
 export function sumLines(file: ReturnFile, employees: readonly Record<string, unknown>[]): string[] {
   return file.built.sumNotes.map((note) => `${employeeWithId(employees[note.employee], note.employee)}: ${sumNoteText(note)}`)
@@ -75,6 +90,8 @@ export interface DownloadChecks {
   canFix: boolean
   required: CheckGroup[]
   sums: CheckGroup[]
+  /** Values that cannot be read as a date or a number, left empty in the file. */
+  unreadable: CheckGroup[]
 }
 
 export function downloadChecks(files: readonly FileToCheck[]): DownloadChecks {
@@ -84,10 +101,11 @@ export function downloadChecks(files: readonly FileToCheck[]): DownloadChecks {
     canFix: files.every(({ file }) => file.unwritable.every((one) => one.to !== null)),
     required: groups(({ file, employees }) => requiredLines(file, employees)),
     sums: groups(({ file, employees }) => sumLines(file, employees)),
+    unreadable: groups(({ file, employees }) => unreadableLines(file, employees)),
   }
 }
 
-export const hasChecks = (checks: DownloadChecks) => checks.unwritable.length + checks.required.length + checks.sums.length > 0
+export const hasChecks = (checks: DownloadChecks) => checks.unwritable.length + checks.required.length + checks.sums.length + checks.unreadable.length > 0
 
 /** The report, line by line. */
 export function reportLines(result: BatchResult): string[] {

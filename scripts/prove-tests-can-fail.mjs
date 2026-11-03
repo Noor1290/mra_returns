@@ -90,6 +90,11 @@ const changes = [
   ['The ready-made CSG template does not require the ERN', 'src/data/readyMade.ts', "csg: ['m0', 'm1',", "csg: ['m1',"],
   ['The ready-made PRGF template does not require its amounts', 'src/data/readyMade.ts', "'e6', 'e7', 'e9', 'e10'],", "],"],
   ['A ready-made template is added again under other capitals', 'src/data/readyMade.ts', 'names.map((name) => name.trim().toLowerCase())', 'names'],
+  // The start date of employment (mra-date-fix).
+  ['A field is found only under its exact capitals', 'src/lib/evaluate.ts', 'Object.keys(row).find((name) => loose(name) === wanted)', 'Object.keys(row).find((name) => name === key)'],
+  ['A date typed with "-" or "." between is not read', 'src/lib/formats.ts', "match = /^(\\d{1,2})([/.-])(\\d{1,2})\\2(\\d{4})$/.exec(value)", "match = /^(\\d{1,2})(\\/)(\\d{1,2})\\2(\\d{4})$/.exec(value)"],
+  ['A value that cannot be read is not listed before the download', 'src/lib/report.ts', 'unreadable: groups(({ file, employees }) => unreadableLines(file, employees)),', 'unreadable: [],'],
+  ['A value that cannot be read does not stop the download', 'src/lib/report.ts', ' + checks.unreadable.length > 0', ' > 0'],
 ]
 
 function runTests() {

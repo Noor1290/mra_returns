@@ -16,7 +16,7 @@ export const lineCount = (groups: readonly CheckGroup[]) => groups.reduce((sum, 
  */
 export function BeforeDownload({ checks, onDownload, onClose }: { checks: DownloadChecks; onDownload: () => void; onClose: () => void }) {
   const [fixed, setFixed] = useState(false)
-  const { unwritable, canFix, required, sums } = checks
+  const { unwritable, canFix, required, sums, unreadable } = checks
   const goBack = (
     <button type="button" className="btn" onClick={onClose}>
       Go back
@@ -41,7 +41,7 @@ export function BeforeDownload({ checks, onDownload, onClose }: { checks: Downlo
                 type="button"
                 className="btn btn-primary"
                 onClick={() => {
-                  if (required.length + sums.length === 0) onDownload()
+                  if (required.length + sums.length + unreadable.length === 0) onDownload()
                   else setFixed(true)
                 }}
               >
@@ -80,6 +80,13 @@ export function BeforeDownload({ checks, onDownload, onClose }: { checks: Downlo
       }
     >
       <div className="flex flex-col gap-4">
+        {unreadable.length > 0 && (
+          <div className="flex flex-col gap-2 text-sm" data-testid="unreadable-dialog">
+            <p className="m-0 font-semibold">Values that can't be read, left empty in the file</p>
+            <p className="m-0 text-muted">Correct them in Payroll System, then get the saved run again.</p>
+            <RequiredList groups={unreadable} />
+          </div>
+        )}
         {required.length > 0 && (
           <div data-testid="required-dialog">
             <RequiredList groups={required} />

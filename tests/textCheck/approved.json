@@ -1139,6 +1139,106 @@
     {
       "text": "text: 1 of 2 companies chosen.",
       "why": "approved by the owner 1 Nov 2026 (MRA fixes); seen on: dashboard: several companies"
+    },
+    {
+      "text": "text: Before you make the files",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: fake sample"
+    },
+    {
+      "text": "text: Check again",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: fake sample"
+    },
+    {
+      "text": "aria-label: Before you make the files",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: files"
+    },
+    {
+      "text": "text: Done:",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: files"
+    },
+    {
+      "text": "text: The MRA details of ABC Co Ltd are filled in.",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: files"
+    },
+    {
+      "text": "text: Templates: .",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: files"
+    },
+    {
+      "text": "text: August 2026 is in the dashboard.",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: files"
+    },
+    {
+      "text": "text: Ready-made MRA templates",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: templates"
+    },
+    {
+      "text": "text: Uses MRA CSG (PACO) and MRA PRGF in every company where you are an admin, after one question.",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: templates"
+    },
+    {
+      "text": "text: Use them for all my companies",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: templates"
+    },
+    {
+      "text": "text: Use the ready-made templates in all your companies?",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: dialog: use the ready-made templates in all companies"
+    },
+    {
+      "text": "text: They are then shared: a change reaches every company using them, and each company keeps its own values.",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: dialog: use the ready-made templates in all companies"
+    },
+    {
+      "text": "text: MRA CSG (PACO) and MRA PRGF will also be used in 1 company: .",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: dialog: use the ready-made templates in all companies"
+    },
+    {
+      "text": "text: Use them in 1 company",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: dialog: use the ready-made templates in all companies"
+    },
+    {
+      "text": "text: As the MRA requires (Windows-1252, CRLF, no quotes).",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Advanced settings",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: template: no cell chosen"
+    },
+    {
+      "text": "text: Adds MRA CSG (PACO) to ABC Co Ltd, set up as the MRA requires.",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: dialog: history"
+    },
+    {
+      "text": "text: Add the ready-made MRA templates",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: dialog: history"
+    },
+    {
+      "text": "text: Adds MRA CSG (PACO) and MRA PRGF to ABC Co Ltd, set up as the MRA requires.",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: on its own: upload: setting up the cells"
+    },
+    {
+      "text": "text: Start with the ready-made MRA templates",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: dashboard: connected"
+    },
+    {
+      "text": "text: To do:",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: dashboard: connected"
+    },
+    {
+      "text": "text: ABC Co Ltd has no templates yet.",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: dashboard: connected"
+    },
+    {
+      "text": "text: Go to Templates",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: dashboard: connected"
+    },
+    {
+      "text": "text: October 2026 has not been sent to the dashboard. Open Payroll System, choose October 2026 and use Send to dashboard.",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: dashboard: connected"
+    },
+    {
+      "text": "text: July 2026 has not been sent to the dashboard. Open Payroll System, choose July 2026 and use Send to dashboard.",
+      "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: dashboard: month not sent"
     }
   ]
 }

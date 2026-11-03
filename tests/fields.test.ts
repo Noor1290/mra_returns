@@ -69,7 +69,7 @@ describe("the lists are the company's own fields, before any month is fetched", 
     expect(fieldLists(loaded(after.overview), null).columns).toContain('Overtime')
   })
 
-  it('with no column setup, lists the newest saved run's columns', async () => {
+  it('with no column setup, lists the columns of the newest saved run', async () => {
     const { port } = fakePort()
     const answer = await loadOverview(port, 'C1234567')
     if (!answer.ok) throw new Error(answer.failure.title)

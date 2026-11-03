@@ -17,8 +17,12 @@ export interface FakeHubState {
   asked: { period: string; names: string[] }[]
   requests: Record<string, unknown>[]
   opened: string[]
+  /** The saved months not approved yet, as "BRN YYYY-MM". */
+  drafts: string[]
   mra: Record<string, { ern: string; telephone: string; mobile: string; declarant: string }>
   email: string
+  /** Each company's fields as the dashboard lists them (mra-batch overview), by BRN. */
+  fields: Record<string, { identity: string[]; columns: string[] }>
   templates: FakeTemplate[]
   saves: Record<string, unknown>[]
   templateRequests: Record<string, unknown>[]

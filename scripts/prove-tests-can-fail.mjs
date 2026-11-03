@@ -81,6 +81,15 @@ const changes = [
   ['Every company starts ticked in the zip', 'src/lib/batch.ts', 'companies.filter((company) => normaliseBrn(company.brn) === normaliseBrn(selectedBrn)).map((company) => company.brn)', 'companies.map((company) => company.brn)'],
   ['An account with no company gets the old message', 'src/lib/hubWire.ts', "'invalid', 'unavailable', 'no-company', 'locked',", "'invalid', 'unavailable', 'locked',"],
   ['A Payroll column starts as text', 'src/lib/template.ts', "if (source.type === 'employee' && source.group === 'column') return defaultFormat('calc')\n", ''],
+  // The lists of a cell, and the ready-made templates (mra-field-lists).
+  ["The lists offer a few fields, not all of the company's", 'src/lib/fields.ts', 'return { identity: [...identity], columns: [...columns], state:', 'return { identity: identity.slice(0, 1), columns: columns.slice(0, 2), state:'],
+  ['A saved run fetched is not used when the dashboard does not list the fields', 'src/lib/fields.ts', "  if (fetched) return { ...runFields(fetched), state: 'known' }\n", ''],
+  ['A company with no fields gets an empty list with nothing said', 'src/lib/fields.ts', "state: columns.length === 0 ? 'empty' : 'known'", "state: 'known'"],
+  ['An overview about another company is used', 'src/lib/runStore.ts', ' || normaliseBrn(overview.brn) !== normaliseBrn(selectedBrn)) return', ') return'],
+  ['The ready-made templates do not tidy the names', 'src/data/readyMade.ts', "capitals: true, tidy: true", "capitals: true, tidy: false"],
+  ['The ready-made CSG template does not require the ERN', 'src/data/readyMade.ts', "csg: ['m0', 'm1',", "csg: ['m1',"],
+  ['The ready-made PRGF template does not require its amounts', 'src/data/readyMade.ts', "'e6', 'e7', 'e9', 'e10'],", "],"],
+  ['A ready-made template is added again under other capitals', 'src/data/readyMade.ts', 'names.map((name) => name.trim().toLowerCase())', 'names'],
 ]
 
 function runTests() {

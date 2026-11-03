@@ -7,6 +7,10 @@
 //       miss the total is shown in a step before the download, which only needs a click;
 //   P8  a cell changed to Payroll column starts as a number in whole rupees;
 //   P11 a month not approved is said clearly and does not stop the download.
+// And from "mra-field-lists": the lists of a cell offer every identity field and payroll column
+// of the company, before any month is fetched, and a column added later; the ready-made templates
+// are offered first, added, and used in every admin company after one question; the checklist;
+// the file settings closed under "Advanced settings".
 // Run after `npm run build`: node scripts/check-fixes.mjs
 import { readFileSync } from 'node:fs'
 import { chromium } from 'playwright'
@@ -123,6 +127,74 @@ try {
   const [checked] = await Promise.all([sums.page.waitForEvent('download'), sums.app.getByRole('button', { name: 'Download', exact: true }).click()])
   check(readFileSync(await checked.path()).toString('latin1').includes('X0000000000002,ROE,21001\r\n'), 'P4: the file does not hold the total rounded once.')
   await sums.page.close()
+
+  // The lists: the company's own fields, before any month is fetched. Set up like the owner's.
+  const IDENTITY = ['ID', 'Surname', 'Other names', 'Date of Employment', 'Department']
+  const COLUMNS = ['Basic Salary', 'Govt Increment', 'New Basic Salary', 'Full time / Part time', 'Allowances', 'Emoluments', 'Travelling', 'Gross Pay', 'Age 60+', 'Employee CSG', 'Employee NSF', 'PAYE', 'Total deductions', 'Net Pay', 'CSG', 'NSF', 'Levy', 'PRGF', 'Total MRA contributions', 'EDF', 'Bonus']
+  const fresh = await openEmbedded(context, `(hub) => { hub.state.fields.C1234567 = { identity: ${JSON.stringify(IDENTITY)}, columns: ${JSON.stringify(COLUMNS)} } }`)
+  const { app: lists, page: listsPage } = fresh
+  // No templates: the ready-made ones are offered first, with what the button does.
+  await lists.getByTestId('checklist-item').first().waitFor()
+  const start = lists.getByTestId('start-ready-made')
+  check((await start.count()) === 1, 'Ready-made: not offered first when the company has no templates.')
+  check(((await start.textContent()) ?? '').includes('Adds MRA CSG (PACO) and MRA PRGF to ABC Co Ltd, set up as the MRA requires.'), 'Ready-made: the line saying what the button does is missing.')
+  const done = async () => lists.getByTestId('checklist-item').evaluateAll((items) => items.map((item) => item.dataset.done))
+  check(JSON.stringify(await done()) === '["true","false","false"]', `Checklist: details, templates, month should be done, to do, to do: ${JSON.stringify(await done())}`)
+  await lists.getByRole('button', { name: 'Add the ready-made MRA templates' }).click()
+  await lists.getByText('Templates: ').waitFor()
+  check((await lists.getByTestId('start-ready-made').count()) === 0, 'Ready-made: still offered once added.')
+  const made = await listsPage.evaluate(() => window.hub.state.templates.map((one) => one.name))
+  check(JSON.stringify(made) === '["MRA CSG (PACO)","MRA PRGF"]', `Ready-made: the dashboard holds ${JSON.stringify(made)}.`)
+  await lists.getByLabel('Month').first().selectOption({ label: 'August 2026' })
+  check(JSON.stringify(await done()) === '["true","true","true"]', `Checklist: not all ticked once ready: ${JSON.stringify(await done())}`)
+
+  const optionsOf = async (name) => lists.getByRole('combobox', { name, exact: true }).locator('option').allTextContents()
+  const openCell = async (cell) => {
+    await lists.getByRole('button', { name: new RegExp(`^Cell ${cell}`) }).click()
+    await lists.getByTestId('cell-editor').waitFor()
+  }
+  await lists.getByRole('tab', { name: 'Templates' }).click()
+  await lists.getByRole('button', { name: /^MRA CSG/ }).click()
+  await lists.getByTestId('template-editor').waitFor()
+  await openCell('A5')
+  const identity = await optionsOf('Identity field')
+  check(JSON.stringify(identity) === JSON.stringify(IDENTITY), `Lists: "Identity field" offers ${JSON.stringify(identity)}, not every identity field.`)
+  await openCell('D5')
+  const columns = await optionsOf('Payroll column')
+  check(JSON.stringify(columns) === JSON.stringify(COLUMNS), `Lists: "Payroll column" offers ${JSON.stringify(columns)}, not every column.`)
+  await openCell('N5')
+  const mapped = await optionsOf('Text from')
+  check(mapped.includes('Full time / Part time') && mapped.includes('Surname'), `Lists: "Text from" offers ${JSON.stringify(mapped)}.`)
+  // The file settings: one line, the rest closed under Advanced settings.
+  check(((await lists.getByTestId('settings-line').textContent()) ?? '') === 'As the MRA requires (Windows-1252, CRLF, no quotes).', 'Settings: the one line is not shown.')
+  check(!(await lists.getByTestId('advanced-settings').evaluate((details) => details.open)), 'Settings: Advanced settings is open at first.')
+  check(!(await lists.getByRole('combobox', { name: 'Encoding' }).isVisible()), 'Settings: the encoding is shown before Advanced settings is opened.')
+  await lists.getByText('Advanced settings').click()
+  check(await lists.getByRole('combobox', { name: 'Encoding' }).isVisible(), 'Settings: Advanced settings does not open.')
+  const noPay = await optionsOf('No pay means this column is 0 or empty')
+  check(JSON.stringify(noPay) === JSON.stringify(COLUMNS), `Settings: the no-pay column offers ${JSON.stringify(noPay)}.`)
+
+  // A column added to the setup later: listed after "Check again", with no month fetched.
+  await listsPage.evaluate(() => window.hub.state.fields.C1234567.columns.push('Overtime'))
+  await lists.getByRole('tab', { name: 'Make the files' }).click()
+  await lists.getByRole('button', { name: 'Check again' }).click()
+  await lists.getByTestId('checklist-item').first().waitFor()
+  await lists.getByRole('tab', { name: 'Templates' }).click()
+  await lists.getByRole('button', { name: /^MRA CSG/ }).click()
+  await lists.getByTestId('template-editor').waitFor()
+  await openCell('D5')
+  check((await optionsOf('Payroll column')).includes('Overtime'), 'Lists: a column added later is not offered.')
+  check((await listsPage.evaluate(() => window.hub.state.asked.length)) === 0, 'Lists: the dashboard asked its user something.')
+
+  // Used in every admin company, after one question that names them.
+  await lists.getByRole('button', { name: 'Use them for all my companies' }).click()
+  const question = (await lists.getByTestId('use-everywhere-text').textContent()) ?? ''
+  check(question === 'MRA CSG (PACO) and MRA PRGF will also be used in 1 company: DEF Ltd.', `Ready-made: the question says ${question}`)
+  await lists.getByRole('button', { name: 'Use them in 1 company' }).click()
+  await lists.getByRole('status').filter({ hasText: 'Now also used by DEF Ltd.' }).waitFor()
+  const users = await listsPage.evaluate(() => window.hub.state.templates.map((one) => one.companies.map((company) => company.brn).join(' ')))
+  check(JSON.stringify(users) === '["C1234567 C3333333","C1234567 C3333333"]', `Ready-made: used by ${JSON.stringify(users)}, not by both admin companies only.`)
+  await listsPage.close()
 
   // On its own, with the fake sample: the cell editor.
   const page = await (await browser.newContext({ viewport: { width: 1320, height: 900 } })).newPage()

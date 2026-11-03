@@ -8,6 +8,10 @@ The saved run keeps 2 decimals. A figure stored as 562.50 may itself have been r
 
 Not the same thing as "round each, then add", which the MRA files need on purpose: round(278.19) + round(556.38) = 278 + 556 = 834, while rounding the total 834.57 would give 835.
 
+## The lists of a cell offered only "ID", or "Basic Salary" and "New Basic Salary" (fixed 3 Nov 2026)
+
+Found by the owner on the live site. The lists were text boxes with suggestions (`<input list>` and a `<datalist>`), and a browser shows only the suggestions that contain what is already in the box: a cell holding "ID" offered only "ID", one holding "Basic Salary" only "Basic Salary" and "New Basic Salary". The suggestions themselves were a fixed sample list, with the keys of a fetched run added. They are now drop-down lists of the company's own fields, from the dashboard before any month is asked for (`mra-batch` `overview`; `src/lib/fields.ts`). Tests: `tests/fields.test.ts`, and in the browser `npm run check:fixes`.
+
 ## check:a11y failed about one run in three (fixed 1 Nov 2026)
 
 `[light switched] fake sample: low contrast 2.58:1 "Light theme"` and `2.43:1 "Close the sample data"`. Not a real contrast problem: the check measured the colours during the 150 ms fade after the theme switch, seeing the old theme's grey on the new theme's background. Those two ghost buttons are what showed it. A browser starts a transition's clock only on its next frame, and a busy headless browser can be slow to draw one: at 100 ms a fade had `currentTime` 0, and at 300 ms one run had reached only 117 ms of it, so the fixed wait of 400 ms was no guarantee. The check now waits for every transition and animation that ends to finish (`settled`, `scripts/lib/a11y-page.mjs`).

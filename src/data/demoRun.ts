@@ -2,7 +2,7 @@
 // (the keys of the payroll export, plus "Date of Employment"). Invented company, names, IDs and
 // figures; nothing here belongs to a real person or company.
 
-import type { SavedRun } from '../lib/runStore'
+import type { Overview, SavedRun } from '../lib/runStore'
 
 const company = { 'Company Name': 'ABC Co Ltd', Address: '1 Fake Street, Port Louis', BRN: 'C1234567', VAT: '' }
 
@@ -55,4 +55,16 @@ export const DEMO_RUN: SavedRun = {
   mra: { ern: '001234', telephone: '2000000', mobile: '52000000', declarant: 'JANE SAMPLE' },
   email: 'returns@example.org',
   templates: [],
+}
+
+/** What the dashboard would say of ABC Co Ltd before a month is asked for (mra-batch `overview`). FAKE. */
+export const DEMO_OVERVIEW: Overview = {
+  brn: DEMO_RUN.brn,
+  name: DEMO_RUN.name,
+  identity: ['ID', 'Surname', 'Other names', 'Date of Employment'],
+  columns: Object.keys(DEMO_RUN.employees[0]).filter((key) => !['ID', 'Surname', 'Other names', 'Date of Employment', 'Company Name', 'Address', 'BRN', 'VAT'].includes(key)),
+  setup: true,
+  run_period: DEMO_RUN.period,
+  filled: { ern: true, telephone: true, mobile: true, declarant: true, email: true },
+  months: [{ period: DEMO_RUN.period, status: 'approved' }],
 }

@@ -111,6 +111,37 @@ export async function openProfile(port: HubPort, selectedBrn: string, companyBrn
   return answer.ok ? null : answer.failure
 }
 
+const fieldName = z.string().min(1).max(120)
+
+export const overviewSchema = z.object({
+  brn,
+  name: companyName,
+  /** The names of its identity fields and payroll columns: its column setup, and its newest saved run. */
+  identity: z.array(fieldName).max(500),
+  columns: z.array(fieldName).max(2_000),
+  setup: z.boolean(),
+  /** The newest saved run's month, or null when there is none. */
+  run_period: month.nullable(),
+  /** Whether each MRA detail is filled in; never the detail itself. */
+  filled: z.object({ ern: z.boolean(), telephone: z.boolean(), mobile: z.boolean(), declarant: z.boolean(), email: z.boolean() }),
+  /** The months with a saved run, newest first. */
+  months: z.array(z.object({ period: month, status: z.enum(['draft', 'approved']) })).max(1_200),
+})
+
+/** What the app needs before a month is asked for: the company's fields, its MRA details filled in or not, its months saved. */
+export type Overview = z.infer<typeof overviewSchema>
+
+export type OverviewAnswer = { ok: true; overview: Overview } | { ok: false; failure: Failure }
+
+/** The selected company's overview. Names only: no question in the dashboard, no gate. */
+export async function loadOverview(port: HubPort, selectedBrn: string): Promise<OverviewAnswer> {
+  const answer = await ask(port, MRA_BATCH, { action: 'overview' }, selectedBrn, overviewSchema, { maxRows: 1 })
+  if (!answer.ok) return answer
+  const [overview] = answer.rows
+  if (answer.rows.length !== 1 || normaliseBrn(overview.brn) !== normaliseBrn(selectedBrn)) return { ok: false, failure: failure('bad-answer') }
+  return { ok: true, overview }
+}
+
 /** One company's saved run of the month. Only after the user allowed it in the dashboard. */
 export async function loadRun(port: HubPort, selectedBrn: string, period: string, companyBrn: string): Promise<Loaded> {
   const answer = await ask(port, MRA_BATCH, { action: 'load', period, company_brn: companyBrn }, selectedBrn, runSchema, {

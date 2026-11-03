@@ -50,7 +50,10 @@ try {
   await app.getByTestId('company').waitFor()
   check((await app.getByTestId('company').textContent()) === 'ABC Co Ltd, BRN C1234567', 'The selected company is not shown with its BRN.')
   check((await app.getByRole('button', { name: 'Try with fake sample data' }).count()) === 0, 'Embedded: the fake sample is offered.')
-  check(JSON.stringify(await requests(page)) === '["companies"]', 'Before anything is chosen, the app asked for more than the companies.')
+  // The overview (names of the fields, details filled in or not, months saved) needs no question.
+  await app.getByTestId('checklist-item').first().waitFor()
+  check(JSON.stringify(await requests(page)) === '["companies","overview"]', 'Before anything is chosen, the app asked for more than the companies and the overview.')
+  check((await page.evaluate(() => window.hub.state.asked.length)) === 0, 'Before anything is chosen, the dashboard asked its user something.')
   await shot(page, '1-connected')
   console.log('  connected: ready and pong seen, the company and the month shown')
 
@@ -63,7 +66,7 @@ try {
   check(JSON.stringify(firstRow) === '["X0000000000001","DOE","JANE","18750"]', `The first employee is not shown exactly as stored: ${JSON.stringify(firstRow)}`)
   const asked = await page.evaluate(() => window.hub.state.asked)
   check(JSON.stringify(asked) === '[{"period":"2026-08","names":["ABC Co Ltd"]}]', `The question was not one for August 2026 and the company: ${JSON.stringify(asked)}`)
-  check(JSON.stringify(await requests(page)) === '["companies","ask","load"]', 'The run was not read with one question and one load.')
+  check(JSON.stringify(await requests(page)) === '["companies","overview","ask","load"]', 'The run was not read with one question and one load.')
   for (const html of await app.locator('body').evaluate(unnamedControls)) problems.push(`Run: control without a name: ${html}`)
   for (const item of await app.locator('body').evaluate(lowContrast)) problems.push(`Run: low contrast ${item}`)
   await shot(page, '2-saved-run')

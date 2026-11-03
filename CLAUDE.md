@@ -22,3 +22,4 @@ A frontend-only app (React + Vite + TypeScript + Tailwind, GitHub Pages at https
 
 ## Status
 - [x] Stage 0  - [x] Stage 1  - [x] Stage 2
+- [x] Field lists, ready-made templates, checklist, Advanced settings (branch `mra-field-lists`, November 2026; needs the hub's `mra-batch` `overview`)

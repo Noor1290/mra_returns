@@ -1,6 +1,7 @@
 import { Eraser, Minus, Plus } from 'lucide-react'
 import { useId, useState } from 'react'
 import { multiply, parseDecimal, toText } from '../lib/decimal'
+import type { FieldLists } from '../lib/fields'
 import { writeDate } from '../lib/formats'
 import {
   COMPANY_FIELDS,
@@ -18,18 +19,12 @@ import {
 } from '../lib/template'
 import { COMPANY_FIELD_LABELS, SOURCE_LABELS } from '../lib/wording'
 
-/** The keys of the saved run, for the lists to choose from. */
-export interface RunKeys {
-  identity: string[]
-  columns: string[]
-}
-
 type Choice = 'empty' | 'fixed' | 'company' | 'identity' | 'column' | 'month' | 'calc' | 'map'
 const CHOICES: Choice[] = ['empty', 'fixed', 'company', 'identity', 'column', 'month', 'calc', 'map']
 
 const choiceOf = (source: Source): Choice => (source.type === 'employee' ? source.group : source.type)
 
-function sourceFor(choice: Choice, keys: RunKeys): Source {
+function sourceFor(choice: Choice, keys: FieldLists): Source {
   switch (choice) {
     case 'empty':
       return { type: 'empty' }
@@ -107,18 +102,76 @@ function NumberText({ label, value, onChange, disabled, allowEmpty, hint }: { la
   )
 }
 
-function KeyInput({ label, value, options, onChange, disabled }: { label: string; value: string; options: string[]; onChange: (value: string) => void; disabled: boolean }) {
+/** What the editor says when the company's fields are not listed. */
+export function fieldsNote(fields: FieldLists, companyName: string): string | null {
+  switch (fields.state) {
+    case 'known':
+      return null
+    case 'loading':
+      return `Loading the fields of ${companyName}.`
+    case 'empty':
+      return `${companyName} has no column setup and no saved month in the dashboard yet. Set up its columns in Payroll System, or send a month to the dashboard, to choose from its fields.`
+    case 'unknown':
+      return `The dashboard did not list the fields of ${companyName}. Get a saved run under Make the files to choose from them.`
+  }
+}
+
+/**
+ * A choice among the company's fields: every one of them, whatever the cell holds now. A field the
+ * template names that the company does not have (any more) stays chosen, and is said so.
+ */
+export function FieldSelect({
+  label,
+  value,
+  groups,
+  onChange,
+  disabled,
+  fields,
+  companyName,
+}: {
+  label: string
+  value: string
+  groups: { label: string; names: string[] }[]
+  onChange: (value: string) => void
+  disabled: boolean
+  fields: FieldLists
+  companyName: string
+}) {
   const id = useId()
-  const listId = useId()
+  const listed = groups.some((group) => group.names.includes(value))
+  const note = fieldsNote(fields, companyName)
+  const options = (names: string[]) =>
+    names.map((name) => (
+      <option key={name} value={name}>
+        {name}
+      </option>
+    ))
   return (
     <label className="field" htmlFor={id}>
       <span className="field-label">{label}</span>
-      <input id={id} className="input input-sm" list={listId} value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)} />
-      <datalist id={listId}>
-        {options.map((option) => (
-          <option key={option} value={option} />
-        ))}
-      </datalist>
+      <select id={id} className="input input-sm" data-values value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)}>
+        {!listed && <option value={value}>{value}</option>}
+        {groups.length === 1
+          ? options(groups[0].names)
+          : groups.map((group) =>
+              group.names.length === 0 ? null : (
+                <optgroup key={group.label} label={group.label}>
+                  {options(group.names)}
+                </optgroup>
+              ),
+            )}
+      </select>
+      {note ? (
+        <span className="field-hint" data-testid="fields-note">
+          {note}
+        </span>
+      ) : (
+        !listed && (
+          <span className="field-hint" data-testid="not-a-field">
+            This is not one of the fields of {companyName} now, so it comes out empty.
+          </span>
+        )
+      )}
     </label>
   )
 }
@@ -131,6 +184,7 @@ function CalcEditor({
   onChange,
   onOnce,
   keys,
+  companyName,
   disabled,
 }: {
   body: TemplateBody
@@ -139,7 +193,8 @@ function CalcEditor({
   once: boolean
   onChange: (terms: Term[]) => void
   onOnce: (once: boolean) => void
-  keys: RunKeys
+  keys: FieldLists
+  companyName: string
   disabled: boolean
 }) {
   const others = cellsOf(body).filter((found) => found.cell.id !== cell.id)
@@ -189,7 +244,17 @@ function CalcEditor({
                 <option value="number">A number</option>
               </select>
             </label>
-            {term.of.type === 'column' && <KeyInput label="Column" value={term.of.key} options={keys.columns} disabled={disabled} onChange={(key) => set(index, { of: { type: 'column', key } })} />}
+            {term.of.type === 'column' && (
+              <FieldSelect
+                label="Column"
+                value={term.of.key}
+                groups={[{ label: 'Payroll columns', names: keys.columns }]}
+                fields={keys}
+                companyName={companyName}
+                disabled={disabled}
+                onChange={(key) => set(index, { of: { type: 'column', key } })}
+              />
+            )}
             {term.of.type === 'cell' && (
               <label className="field">
                 <span className="field-label">Cell</span>
@@ -317,7 +382,8 @@ export interface CellEditorProps {
   companyName: string
   /** This company's own value for this cell, when it has one. */
   ownValue: string | undefined
-  keys: RunKeys
+  /** The company's identity fields and payroll columns, for the lists. */
+  keys: FieldLists
   /** The cell's text in the uploaded file, while a new upload is set up (never saved). */
   uploaded: string | null
   preview: { text: string; problem: string | null; who: string } | null
@@ -417,10 +483,12 @@ export function CellEditor(props: CellEditorProps) {
       )}
 
       {source.type === 'employee' && (
-        <KeyInput
+        <FieldSelect
           label={source.group === 'identity' ? 'Identity field' : 'Payroll column'}
           value={source.key}
-          options={source.group === 'identity' ? keys.identity : keys.columns}
+          groups={[source.group === 'identity' ? { label: 'Identity fields', names: keys.identity } : { label: 'Payroll columns', names: keys.columns }]}
+          fields={keys}
+          companyName={companyName}
           disabled={locked}
           onChange={(key) => setSource({ ...source, key })}
         />
@@ -435,6 +503,7 @@ export function CellEditor(props: CellEditorProps) {
           terms={source.terms}
           once={source.once === true}
           keys={keys}
+          companyName={companyName}
           disabled={locked}
           onChange={(terms) => setSource({ ...source, terms })}
           onOnce={(once) => setSource(once ? { type: 'calc', terms: source.terms.map((term) => ({ ...term, round: 'none' })), once: true } : { type: 'calc', terms: source.terms })}
@@ -443,7 +512,18 @@ export function CellEditor(props: CellEditorProps) {
 
       {source.type === 'map' && (
         <div className="flex flex-col gap-3">
-          <KeyInput label="Text from" value={source.key} options={keys.identity} disabled={locked} onChange={(key) => setSource({ ...source, key })} />
+          <FieldSelect
+            label="Text from"
+            value={source.key}
+            groups={[
+              { label: 'Identity fields', names: keys.identity },
+              { label: 'Payroll columns', names: keys.columns },
+            ]}
+            fields={keys}
+            companyName={companyName}
+            disabled={locked}
+            onChange={(key) => setSource({ ...source, key })}
+          />
           <fieldset className="flex flex-col gap-2 rounded-lg border border-line p-3">
             <legend className="field-label px-1">Capitals and spaces are ignored</legend>
             {source.pairs.map((pair, index) => (

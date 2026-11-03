@@ -57,6 +57,11 @@ export function createFakeHub() {
     mra: { C1234567: { ern: '001234', telephone: '2000000', mobile: '52000000', declarant: 'JANE SAMPLE' } },
     email: 'returns@example.org',
     /**
+     * Each company's fields as the dashboard lists them (mra-batch overview), by BRN: its column
+     * setup, { identity, columns }. A company with none here is listed from its newest run.
+     */
+    fields: {},
+    /**
      * The MRA templates (mra-template), as the dashboard keeps them: the body exactly as sent,
      * every revision, and each company's own values. FAKE content.
      */
@@ -199,6 +204,36 @@ export function createFakeHub() {
       if (!target) return refuse('forbidden', 'Only an admin of that company can open its MRA details.')
       state.opened.push(target.brn)
       return { ok: true, dataType: 'mra-batch', rows: [], meta: meta() }
+    }
+    if (params.action === 'overview') {
+      if (!params.brn) return refuse('invalid', 'The request is not valid.')
+      const target = selected()
+      if (target.role !== 'admin') return refuse('forbidden', 'Only an admin of this company can make its MRA returns.')
+      const months = Object.keys(target.runs).sort().reverse()
+      const newest = months.length > 0 ? target.runs[months[0]] : []
+      const identity = ['ID', 'Surname', 'Other names', 'Date of Employment']
+      const company = ['Company Name', 'Address', 'BRN', 'VAT']
+      const keys = [...new Set(newest.flatMap((row) => Object.keys(row)))].filter((key) => !identity.includes(key) && !company.includes(key))
+      const setup = state.fields[target.brn]
+      const mra = state.mra[target.brn] ?? {}
+      const filled = (value) => typeof value === 'string' && value.trim() !== ''
+      return {
+        ok: true,
+        dataType: 'mra-batch',
+        rows: [
+          {
+            brn: target.brn,
+            name: target.name,
+            identity: setup ? setup.identity : identity,
+            columns: setup ? [...setup.columns, ...keys.filter((key) => !setup.columns.includes(key) && !setup.identity.includes(key))] : keys,
+            setup: Boolean(setup),
+            run_period: months[0] ?? null,
+            filled: { ern: filled(mra.ern), telephone: filled(mra.telephone), mobile: filled(mra.mobile), declarant: filled(mra.declarant), email: filled(state.email) },
+            months: months.map((period) => ({ period, status: state.drafts.includes(`${target.brn} ${period}`) ? 'draft' : 'approved' })),
+          },
+        ],
+        meta: meta(),
+      }
     }
     if (params.action === 'load') {
       if (!params.brn || !isMonth(params.period) || !params.company_brn) return refuse('invalid', 'The request is not valid.')

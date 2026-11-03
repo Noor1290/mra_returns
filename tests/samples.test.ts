@@ -15,11 +15,15 @@
 //   3. The full path through a saved run: names trimmed as the dashboard stores them, the run as
 //      mra-batch sends it, checked as the app checks it -> the sample with its names trimmed
 //      (which is fine for the MRA, the owner decided).
+//   4. The ready-made templates ("Add the ready-made MRA templates"), with no cell set by hand,
+//      through a saved run -> the sample with its names trimmed and their double spaces made
+//      single (the ready-made templates tidy the names), and nothing Required missing.
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { withStandardCells, type Layout } from '../src/data/mraLayouts'
+import { READY_MADE, readyMadeTemplate } from '../src/data/readyMade'
 import { readCsv, writeCsv } from '../src/lib/csvFile'
 import { fromNumber, multiply, parseDecimal, roundHalfUp, toText } from '../src/lib/decimal'
 import { makeReturnFile, type CompanyForFile } from '../src/lib/returnFile'
@@ -170,6 +174,30 @@ describe.runIf(here)("the owner's samples, byte for byte", () => {
       const expected = read.rows.map((row, line) => (line >= 4 ? row.map((field, column) => (column <= 2 ? field.trim() : field)) : row))
       expect([...file.bytes]).toEqual([...writeCsv(expected, read.rows[0].length, read).bytes])
       expect(file.fileName).toBe(`${layout.toUpperCase()} AUGUST 2026 ${identity.name.toUpperCase()}.csv`)
+    })
+  }
+
+  for (const layout of ['csg', 'prgf'] as const) {
+    it(`4. ${layout.toUpperCase()}: the ready-made template, no cell set by hand, gives the sample (names trimmed and tidied)`, async () => {
+      const { sample, identity, employees, company } = await companyOf(layout, true)
+      const ready = READY_MADE.find((one) => one.layout === layout)!
+      // Stored in the dashboard as JSON and read back, as any template is.
+      const body = templateBodySchema.parse(JSON.parse(JSON.stringify(readyMadeTemplate(layout))))
+      const answer = runSchema.parse(
+        JSON.parse(
+          JSON.stringify({ brn: company.brn, name: company.name, address: null, period: identity.period, run: true, employees, mra: company.mra, email: identity.email, templates: [] }),
+        ),
+      )
+      const file = makeReturnFile(body, { values: {} }, answer, answer.period, answer.employees)
+      const read = readCsv(sample)
+      const tidy = (text: string) => text.trim().replace(/ {2,}/g, ' ')
+      const expected = read.rows.map((row, line) => (line >= 4 ? row.map((field, column) => (column === 1 || column === 2 ? tidy(field) : column === 0 ? field.trim() : field)) : row))
+      expect(file.problems).toEqual([])
+      expect(file.built.missing).toEqual([])
+      expect(file.built.leftOut).toEqual([])
+      expect([...file.bytes]).toEqual([...writeCsv(expected, read.rows[0].length, read).bytes])
+      expect(file.fileName).toBe(`${layout.toUpperCase()} AUGUST 2026 ${identity.name.toUpperCase()}.csv`)
+      expect(ready.name).toBe(layout === 'csg' ? 'MRA CSG (PACO)' : 'MRA PRGF')
     })
   }
 

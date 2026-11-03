@@ -72,9 +72,17 @@ export async function walkTemplates(page, visit) {
   await page.getByRole('tab', { name: 'Templates' }).click()
   await page.getByRole('list', { name: 'Templates of this company' }).waitFor()
   await visit('templates')
+  // The ready-made templates, used in every admin company: the one question.
+  await page.getByRole('button', { name: 'Use them for all my companies' }).click()
+  await page.getByTestId('use-everywhere-text').waitFor()
+  await visit('dialog: use the ready-made templates in all companies')
+  await page.getByRole('button', { name: 'Cancel' }).click()
   await openTemplate('MRA CSG')
   await page.getByTestId('no-cell').waitFor()
   await visit('template: no cell chosen')
+  await page.getByTestId('advanced-settings').locator('summary').click()
+  await visit('template: advanced settings')
+  await page.getByTestId('advanced-settings').locator('summary').click()
 
   // An employee cell, with every kind of content, and every way of writing it.
   await page.getByRole('button', { name: /^Cell J5/ }).click()

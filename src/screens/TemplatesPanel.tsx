@@ -1,11 +1,13 @@
 import { Building2, FileUp, History, LayoutTemplate, RotateCcw, Save, Trash2, Undo2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { CellEditor, type RunKeys } from '../components/CellEditor'
+import { CellEditor } from '../components/CellEditor'
 import { Dialog } from '../components/Dialog'
 import { FailurePanel } from '../components/FailurePanel'
 import { FileSettingsEditor } from '../components/FileSettingsEditor'
+import { AddReadyMade, UseEverywhere } from '../components/ReadyMade'
 import { FilePreview, TemplateGrid, type Selected } from '../components/TemplateGrid'
 import { buildFile, previewCell, templateProblems, type FileContext } from '../lib/evaluate'
+import type { FieldLists } from '../lib/fields'
 import { failure as failureOf, type Failure } from '../lib/hubWire'
 import { companyInfo } from '../lib/returnFile'
 import type { SavedRun } from '../lib/runStore'
@@ -13,25 +15,6 @@ import { newCellId, templateBodySchema, type Cell, type OwnValues, type Template
 import type { TemplateCompany, TemplateRevision, TemplateStore, TemplateSummary } from '../lib/templateStore'
 import { readUpload, templateFromUpload, type Upload, type UploadKind } from '../lib/upload'
 import { cellProblemText, employeeName, problemText, ROW_KIND_LABELS } from '../lib/wording'
-
-/** The identity fields and payroll columns every saved run has, before one is loaded. */
-const KNOWN_IDENTITY = ['ID', 'Surname', 'Other names', 'Date of Employment', 'Full time / Part time']
-const KNOWN_COLUMNS = ['Basic Salary', 'Govt Increment', 'New Basic Salary', 'Allowances', 'Emoluments', 'Travelling', 'Gross Pay', 'CSG', 'NSF', 'PAYE', 'Employee CSG', 'Employee NSF', 'Total deductions', 'Net Pay', 'Levy', 'PRGF', 'Total MRA contributions', 'EDF', 'EDF (monthly)', 'Total']
-const COMPANY_KEYS = new Set(['Company Name', 'Address', 'BRN', 'VAT'])
-
-/** The keys of the saved run, for the lists: text values are identity fields, numbers are columns. */
-export function runKeys(run: SavedRun | null): RunKeys {
-  const identity = new Set(KNOWN_IDENTITY)
-  const columns = new Set(KNOWN_COLUMNS)
-  for (const row of run?.employees ?? []) {
-    for (const [key, value] of Object.entries(row)) {
-      if (COMPANY_KEYS.has(key)) continue
-      if (typeof value === 'number') columns.add(key)
-      else if (typeof value === 'string' && !columns.has(key)) identity.add(key)
-    }
-  }
-  return { identity: [...identity], columns: [...columns] }
-}
 
 interface Editing {
   /** Null for a new template, not saved yet. */
@@ -54,12 +37,15 @@ export function TemplatesPanel({
   store,
   company,
   previewRun,
+  fields,
   onChanged,
 }: {
   store: TemplateStore
   company: { name: string; brn: string }
   /** The saved run the preview shows; null when none has been fetched. */
   previewRun: SavedRun | null
+  /** The company's identity fields and payroll columns, for the lists. */
+  fields: FieldLists
   /** A template was saved, made or removed: the export reads them again. */
   onChanged: () => void
 }) {
@@ -71,6 +57,8 @@ export function TemplatesPanel({
   const [selected, setSelected] = useState<Selected | null>(null)
   const [failure, setFailure] = useState<Failure | null>(null)
   const [status, setStatus] = useState<string | null>(null)
+  /** What could not be done for some companies, after "Use them for all my companies". */
+  const [notDone, setNotDone] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [open, setOpen] = useState<Open>(null)
   const fileInput = useRef<HTMLInputElement>(null)
@@ -106,8 +94,6 @@ export function TemplatesPanel({
     },
     [store],
   )
-
-  const keys = useMemo(() => runKeys(previewRun), [previewRun])
 
   const context: FileContext | null = useMemo(
     () => (previewRun && editing ? { company: companyInfo(previewRun), period: previewRun.period, own: editing.own } : null),
@@ -268,6 +254,36 @@ export function TemplatesPanel({
           </div>
         )}
         {list.status === 'failed' && <FailurePanel failure={list.failure} onRetry={() => setReload((n) => n + 1)} />}
+        {list.status === 'loaded' && (
+          <section className="card flex flex-col gap-3 p-4" aria-labelledby="ready-made-title" data-testid="ready-made">
+            <h3 id="ready-made-title" className="m-0 text-base font-semibold">
+              Ready-made MRA templates
+            </h3>
+            <AddReadyMade
+              store={store}
+              templates={list.templates}
+              companyName={company.name}
+              disabled={dirty || busy}
+              onAdded={(names) => {
+                setNotDone([])
+                setStatus(`Added ${names.join(' and ')} to ${company.name}.`)
+                setReload((n) => n + 1)
+                onChanged()
+              }}
+            />
+            <UseEverywhere
+              store={store}
+              templates={list.templates}
+              disabled={dirty || busy}
+              onDone={(text, problems) => {
+                setStatus(text === '' ? null : text)
+                setNotDone(problems)
+                setReload((n) => n + 1)
+                if (editing?.summary) void openTemplate(editing.id).then(() => setStatus(text === '' ? null : text))
+              }}
+            />
+          </section>
+        )}
         {list.status === 'loaded' && list.templates.length === 0 && !upload && !editing && (
           <div className="panel" data-testid="no-templates">
             <LayoutTemplate aria-hidden="true" />
@@ -303,6 +319,16 @@ export function TemplatesPanel({
         {dirty && <p className="m-0 text-sm text-muted">Save or undo the changes before opening another template.</p>}
 
         {failure && <FailurePanel failure={failure} />}
+        {notDone.length > 0 && (
+          <div className="panel tone-warn" role="note" data-testid="not-done">
+            <Building2 aria-hidden="true" />
+            <ul className="m-0 flex list-none flex-col gap-1 p-0 text-sm">
+              {notDone.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         {status && (
           <p className="m-0 text-sm" role="status">
             {status}
@@ -381,7 +407,7 @@ export function TemplatesPanel({
                   canChange={canChange}
                   companyName={company.name}
                   ownValue={selectedCell ? editing.own.values[selectedCell.id] : undefined}
-                  keys={keys}
+                  keys={fields}
                   uploaded={editing.uploaded?.[selected.row]?.[selected.column] ?? null}
                   preview={
                     selectedCell && context && previewRun && built
@@ -411,7 +437,8 @@ export function TemplatesPanel({
               <FileSettingsEditor
                 body={editing.body}
                 disabled={!canChange}
-                columns={keys.columns}
+                fields={fields}
+                companyName={company.name}
                 example={{ name: previewRun?.name ?? company.name, brn: previewRun?.brn ?? company.brn, period: previewRun?.period ?? '2026-08' }}
                 onChange={(body) => setEditing({ ...editing, body, bodyChanged: true })}
               />

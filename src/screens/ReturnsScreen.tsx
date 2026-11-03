@@ -1,16 +1,20 @@
-import { CircleAlert, Download, FlaskConical } from 'lucide-react'
+import { CircleAlert, Download, FlaskConical, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Checklist } from '../components/Checklist'
 import { FailurePanel } from '../components/FailurePanel'
+import { AddReadyMade } from '../components/ReadyMade'
 import { DEMO_COMPANIES, demoBatchSource } from '../data/demoBatch'
-import { DEMO_RUN } from '../data/demoRun'
+import { DEMO_OVERVIEW, DEMO_RUN } from '../data/demoRun'
 import type { BatchSource } from '../lib/batch'
 import { formatPeriod, lastMonth, recentMonths } from '../lib/dates'
+import { fieldLists, type OverviewState } from '../lib/fields'
 import { failure, type Failure, type HubPort } from '../lib/hubWire'
-import { askForCompanies, hubBatchSource, listCompanies, loadRun, openProfile, type BatchCompany, type SavedRun } from '../lib/runStore'
+import { askForCompanies, hubBatchSource, listCompanies, loadOverview, loadRun, openProfile, type BatchCompany, type SavedRun } from '../lib/runStore'
 import { demoTemplateStore, hubTemplateStore, type TemplateStore } from '../lib/templateStore'
 import { BatchPanel } from './BatchPanel'
 import { ExportPanel } from './ExportPanel'
 import { TemplatesPanel } from './TemplatesPanel'
+import { useTemplates } from './useTemplates'
 
 type Companies =
   | { status: 'loading' }
@@ -47,10 +51,34 @@ interface Batch {
 }
 
 /** The two parts of the app: making the files, and the templates they are made with. */
-function Workspace({ store, company, run, filesPart, batch }: { store: TemplateStore; company: { name: string; brn: string }; run: SavedRun | null; filesPart: ReactNode; batch: Batch }) {
+function Workspace({
+  store,
+  company,
+  run,
+  filesPart,
+  batch,
+  overview,
+  period,
+  onRefreshOverview,
+}: {
+  store: TemplateStore
+  company: { name: string; brn: string }
+  run: SavedRun | null
+  filesPart: ReactNode
+  batch: Batch
+  /** What the dashboard says of the company before a month is asked for. */
+  overview: OverviewState
+  /** The month chosen under "Saved payroll run". */
+  period: string
+  onRefreshOverview: () => void
+}) {
   const [tab, setTab] = useState<Tab>('files')
   // A template saved, made or removed: the files are made again from the templates.
   const [version, setVersion] = useState(0)
+  const { loaded, retry } = useTemplates(store, version)
+  const templates = loaded.status === 'loaded' ? loaded.templates : null
+  const fields = useMemo(() => fieldLists(overview, run?.run ? run : null), [overview, run])
+  const openSelectedProfile = batch.openProfile ? () => batch.openProfile!(company.brn) : null
   const tabs: { id: Tab; label: string }[] = [
     { id: 'files', label: 'Make the files' },
     { id: 'templates', label: 'Templates' },
@@ -74,6 +102,32 @@ function Workspace({ store, company, run, filesPart, batch }: { store: TemplateS
         ))}
       </div>
       <div role="tabpanel" id="panel-files" aria-labelledby="tab-files" hidden={tab !== 'files'} className="flex flex-col gap-4">
+        {templates && templates.length === 0 && (
+          <section className="card rise-in" aria-labelledby="start-title" data-testid="start-ready-made">
+            <div className="card-header">
+              <h2 id="start-title" className="card-title flex items-center gap-2">
+                <Sparkles aria-hidden="true" className="size-5" />
+                Start with the ready-made MRA templates
+              </h2>
+            </div>
+            <div className="p-5">
+              <AddReadyMade store={store} templates={templates} companyName={company.name} onAdded={() => setVersion((n) => n + 1)} />
+            </div>
+          </section>
+        )}
+        {loaded.status === 'failed' && <FailurePanel failure={loaded.failure} onRetry={retry} />}
+        <Checklist
+          companyName={company.name}
+          period={period}
+          overview={overview}
+          templates={templates}
+          onRefresh={() => {
+            onRefreshOverview()
+            retry()
+          }}
+          onOpenProfile={openSelectedProfile}
+          onOpenTemplates={() => setTab('templates')}
+        />
         {filesPart}
         {run?.run && <ExportPanel store={store} run={run} version={version} onOpenProfile={batch.openProfile ? () => batch.openProfile!(run.brn) : null} />}
         <BatchPanel
@@ -89,7 +143,7 @@ function Workspace({ store, company, run, filesPart, batch }: { store: TemplateS
       </div>
       <div role="tabpanel" id="panel-templates" aria-labelledby="tab-templates" hidden={tab !== 'templates'}>
         {/* Mounted only when shown: the list is read from the dashboard when the tab opens. */}
-        {tab === 'templates' && <TemplatesPanel store={store} company={company} previewRun={run?.run ? run : null} onChanged={() => setVersion((n) => n + 1)} />}
+        {tab === 'templates' && <TemplatesPanel store={store} company={company} previewRun={run?.run ? run : null} fields={fields} onChanged={() => setVersion((n) => n + 1)} />}
       </div>
     </div>
   )
@@ -107,6 +161,10 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
   const hubBatch = useMemo(() => (selectedBrn ? hubBatchSource(port, selectedBrn) : null), [port, selectedBrn])
   // Opened on its own: fake templates in memory, made again each time the sample is opened.
   const [demoStore, setDemoStore] = useState<TemplateStore | null>(null)
+  // The selected company's fields, MRA details filled in or not, and months saved: names only.
+  const [overview, setOverview] = useState<OverviewState>({ status: 'loading' })
+  const [overviewReload, setOverviewReload] = useState(0)
+  const isAdmin = companies.status === 'loaded' && companies.isAdmin
 
   useEffect(() => {
     if (!embedded || !connected) return
@@ -128,6 +186,18 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
       current = false
     }
   }, [embedded, connected, port, companiesReload])
+
+  useEffect(() => {
+    if (!embedded || !connected || !selectedBrn || !isAdmin) return
+    let current = true
+    setOverview({ status: 'loading' })
+    void loadOverview(port, selectedBrn).then((answer) => {
+      if (current) setOverview(answer.ok ? { status: 'loaded', overview: answer.overview } : { status: 'failed', failure: answer.failure })
+    })
+    return () => {
+      current = false
+    }
+  }, [embedded, connected, port, selectedBrn, isAdmin, overviewReload])
 
   const getRun = useCallback(async () => {
     if (companies.status !== 'loaded') return
@@ -180,6 +250,9 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
             company={{ name: DEMO_RUN.name, brn: DEMO_RUN.brn }}
             run={fetched.run}
             batch={{ source: demoBatchSource(demoStore), companies: DEMO_COMPANIES, months, initialPeriod: DEMO_RUN.period, openProfile: null }}
+            overview={{ status: 'loaded', overview: DEMO_OVERVIEW }}
+            period={DEMO_RUN.period}
+            onRefreshOverview={() => {}}
             filesPart={
               <section className="card rise-in" aria-labelledby="sample-title">
                 <div className="card-header">
@@ -292,6 +365,9 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
         initialPeriod: lastMonth(),
         openProfile: (brn) => openProfile(port, companies.selectedBrn, brn),
       }}
+      overview={overview}
+      period={period}
+      onRefreshOverview={() => setOverviewReload((n) => n + 1)}
     />
   )
 }

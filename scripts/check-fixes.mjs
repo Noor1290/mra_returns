@@ -185,6 +185,21 @@ try {
   await openCell('D5')
   check((await optionsOf('Payroll column')).includes('Overtime'), 'Lists: a column added later is not offered.')
   check((await listsPage.evaluate(() => window.hub.state.asked.length)) === 0, 'Lists: the dashboard asked its user something.')
+  // A field the saved template names that the company no longer has: still chosen, and said so.
+  await listsPage.evaluate(() => {
+    const setup = window.hub.state.fields.C1234567
+    setup.columns = setup.columns.filter((name) => name !== 'PAYE')
+  })
+  await lists.getByRole('tab', { name: 'Make the files' }).click()
+  await lists.getByRole('button', { name: 'Check again' }).click()
+  await lists.getByTestId('checklist-item').first().waitFor()
+  await lists.getByRole('tab', { name: 'Templates' }).click()
+  await lists.getByRole('button', { name: /^MRA CSG/ }).click()
+  await lists.getByTestId('template-editor').waitFor()
+  await openCell('O5')
+  check((await lists.getByRole('combobox', { name: 'Payroll column', exact: true }).inputValue()) === 'PAYE', 'Lists: a field the company no longer has was changed in the template.')
+  check((await lists.getByTestId('not-a-field').count()) === 1, 'Lists: a field the company no longer has is not said.')
+  check((await lists.getByText('Unsaved changes').count()) === 0, 'Lists: opening the template changed it.')
 
   // Used in every admin company, after one question that names them.
   await lists.getByRole('button', { name: 'Use them for all my companies' }).click()

@@ -138,6 +138,7 @@ export function FieldSelect({
   companyName: string
 }) {
   const id = useId()
+  const hintId = useId()
   const listed = groups.some((group) => group.names.includes(value))
   const note = fieldsNote(fields, companyName)
   const options = (names: string[]) =>
@@ -147,9 +148,19 @@ export function FieldSelect({
       </option>
     ))
   return (
-    <label className="field" htmlFor={id}>
-      <span className="field-label">{label}</span>
-      <select id={id} className="input input-sm" data-values value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)}>
+    <div className="field">
+      <label className="field-label" htmlFor={id}>
+        {label}
+      </label>
+      <select
+        id={id}
+        className="input input-sm"
+        data-values
+        value={value}
+        disabled={disabled}
+        aria-describedby={note || !listed ? hintId : undefined}
+        onChange={(event) => onChange(event.target.value)}
+      >
         {!listed && <option value={value}>{value}</option>}
         {groups.length === 1
           ? options(groups[0].names)
@@ -162,17 +173,17 @@ export function FieldSelect({
             )}
       </select>
       {note ? (
-        <span className="field-hint" data-testid="fields-note">
+        <span id={hintId} className="field-hint" data-testid="fields-note">
           {note}
         </span>
       ) : (
         !listed && (
-          <span className="field-hint" data-testid="not-a-field">
+          <span id={hintId} className="field-hint" data-testid="not-a-field">
             This is not one of the fields of {companyName} now, so it comes out empty.
           </span>
         )
       )}
-    </label>
+    </div>
   )
 }
 

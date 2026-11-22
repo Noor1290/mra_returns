@@ -1242,35 +1242,35 @@
     },
     {
       "text": "text: Your companies",
-      "why": "approved in principle by the owner 22 Nov 2026 (company lists M1/M5: main page title, and the way back to it); shown in context in the Stage 2 report"
+      "why": "approved by the owner 22 Nov 2026 (company lists M1/M5: main page title, and the way back to it; Stage 2 approved)"
     },
     {
       "text": "aria-label: Your companies",
-      "why": "approved in principle by the owner 22 Nov 2026 (company lists M1: the list of company cards); shown in context in the Stage 2 report"
+      "why": "approved by the owner 22 Nov 2026 (company lists M1: the list of company cards; Stage 2 approved)"
     },
     {
       "text": "text: Choose companies",
-      "why": "approved in principle by the owner 22 Nov 2026 (company lists M2); shown in context in the Stage 2 report"
+      "why": "approved by the owner 22 Nov 2026 (company lists M2; Stage 2 approved)"
     },
     {
       "text": "text: CSG",
-      "why": "approved in principle by the owner 22 Nov 2026 (company lists the lists a company is on, on its card (as P9)); shown in context in the Stage 2 report"
+      "why": "approved by the owner 22 Nov 2026 (company lists: the lists a company is on, on its card (as P9); Stage 2 approved)"
     },
     {
       "text": "text: PRGF",
-      "why": "approved in principle by the owner 22 Nov 2026 (company lists the lists a company is on, on its card (as P9)); shown in context in the Stage 2 report"
+      "why": "approved by the owner 22 Nov 2026 (company lists: the lists a company is on, on its card (as P9); Stage 2 approved)"
     },
     {
       "text": "text: No companies yet",
-      "why": "approved in principle by the owner 22 Nov 2026 (company lists M3); shown in context in the Stage 2 report"
+      "why": "approved by the owner 22 Nov 2026 (company lists M3; Stage 2 approved)"
     },
     {
       "text": "text: An admin can choose them.",
-      "why": "approved in principle by the owner 22 Nov 2026 (company lists M3, when you are not an admin); shown in context in the Stage 2 report"
+      "why": "approved by the owner 22 Nov 2026 (company lists M3, when you are not an admin; Stage 2 approved)"
     },
     {
       "text": "text: Not on the list",
-      "why": "approved in principle by the owner 22 Nov 2026 (company lists M4); shown in context in the Stage 2 report"
+      "why": "approved by the owner 22 Nov 2026 (company lists M4; Stage 2 approved)"
     }
   ]
 }

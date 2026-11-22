@@ -69,6 +69,23 @@ export function createFakeHub() {
     /** Every save seen, in order (one row each), and every template request. */
     saves: [],
     templateRequests: [],
+    /**
+     * "company-list" (the dashboard's migration 0024): the CSG and PRGF lists each company is on,
+     * by BRN, and each company's id. `openOnStart`: the first answer marks the selected company
+     * `open`, as right after its card was tapped, so the app goes straight to it (the checks
+     * written before the main page start there). `legacy`: a dashboard from before the lists.
+     */
+    lists: { C1234567: ['csg', 'prgf'], C3333333: ['csg'] },
+    ids: { C1234567: '10000000-0000-4000-8000-000000000001', C3333333: '10000000-0000-4000-8000-000000000003', C2222222: '10000000-0000-4000-8000-000000000002' },
+    openOnStart: true,
+    legacy: false,
+    /** The company and month a card asked to open, until the next "companies". */
+    pendingOpen: null,
+    /** Set when the dashboard would reload the app's frame (a company was switched). */
+    reload: false,
+    /** How many times the picker was asked for. */
+    pickerOpened: 0,
+    listRequests: [],
   }
   const norm = (brn) => String(brn).trim().toUpperCase()
   const refuse = (code, error) => ({ ok: false, code, error })
@@ -169,7 +186,57 @@ export function createFakeHub() {
     return refuse('invalid', 'The request is not valid.')
   }
 
+  /** "company-list": the user's companies with this app's lists, the picker, opening a company. */
+  function handleList(payload) {
+    if (state.legacy) return { ok: false, error: 'This app is not registered to receive this kind of data.' }
+    const params = payload.params ?? {}
+    state.listRequests.push(params)
+    if (state.refuseAll) return refuse(state.refuseAll.code, state.refuseAll.error)
+    if (params.brn !== undefined && norm(params.brn) !== norm(state.selected)) return refuse('wrong-company', 'The BRN sent is not the selected company.')
+    const answer = (rows) => ({ ok: true, dataType: 'company-list', rows, meta: meta() })
+    if (params.action === 'companies') {
+      const pending = state.pendingOpen
+      state.pendingOpen = null
+      // Once, as the dashboard does: the next answer no longer marks it.
+      const onStart = state.openOnStart
+      state.openOnStart = false
+      const rows = [...state.companies]
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((one) => {
+          const selectedOne = norm(one.brn) === norm(state.selected)
+          const open = selectedOne && (onStart || (pending && norm(pending.brn) === norm(one.brn)))
+          return {
+            company_id: state.ids[one.brn],
+            brn: one.brn,
+            name: one.name,
+            admin: one.role === 'admin',
+            selected: selectedOne,
+            lists: state.lists[one.brn] ?? [],
+            ...(open ? { open: true, ...(pending?.period ? { open_period: pending.period } : {}) } : {}),
+          }
+        })
+      return answer(rows)
+    }
+    if (params.action === 'open-picker') {
+      state.pickerOpened += 1
+      return answer([])
+    }
+    if (params.action === 'open-company') {
+      const target = state.companies.find((one) => state.ids[one.brn] === params.company_id)
+      if (!target) return refuse('forbidden', 'You are not a member of that company.')
+      if (norm(target.brn) === norm(state.selected)) return answer([{ switched: false }])
+      // Answered about the company selected now; the switch happens once the answer has left.
+      const before = meta()
+      state.selected = target.brn
+      state.pendingOpen = { brn: target.brn, period: params.period ?? null }
+      state.reload = true
+      return { ok: true, dataType: 'company-list', rows: [{ switched: true }], meta: before }
+    }
+    return refuse('invalid', 'The request is not valid.')
+  }
+
   function handle(type, payload) {
+    if (payload.dataType === 'company-list' && type === 'request-data') return handleList(payload)
     if (payload.dataType === 'mra-template' && (type === 'request-data' || type === 'send-data')) {
       if (state.refuseAll) return refuse(state.refuseAll.code, state.refuseAll.error)
       return handleTemplate(type, payload)

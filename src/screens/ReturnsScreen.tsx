@@ -1,6 +1,7 @@
-import { CircleAlert, Download, FlaskConical, Sparkles } from 'lucide-react'
+import { ArrowLeft, CircleAlert, Download, FlaskConical, Plus, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Checklist } from '../components/Checklist'
+import { CompanyHome, type HomeCompany } from '../components/CompanyHome'
 import { FailurePanel } from '../components/FailurePanel'
 import { AddReadyMade } from '../components/ReadyMade'
 import { DEMO_COMPANIES, demoBatchSource } from '../data/demoBatch'
@@ -8,7 +9,8 @@ import { DEMO_OVERVIEW, DEMO_RUN } from '../data/demoRun'
 import type { BatchSource } from '../lib/batch'
 import { formatPeriod, lastMonth, recentMonths } from '../lib/dates'
 import { fieldLists, type OverviewState } from '../lib/fields'
-import { failure, type Failure, type HubPort } from '../lib/hubWire'
+import { isListed, loadCompanyList, openCompany, openPicker, type ListedCompany } from '../lib/companyList'
+import { failure, normaliseBrn, type Failure, type HubPort } from '../lib/hubWire'
 import { askForCompanies, hubBatchSource, listCompanies, loadOverview, loadRun, openProfile, type BatchCompany, type SavedRun } from '../lib/runStore'
 import { demoTemplateStore, hubTemplateStore, type TemplateStore } from '../lib/templateStore'
 import { BatchPanel } from './BatchPanel'
@@ -39,6 +41,18 @@ const SHOWN = [
 const shown = (value: unknown) => (value === undefined || value === null ? '' : String(value))
 
 type Tab = 'files' | 'templates'
+
+/** This app's list of companies (company-list): which are on the CSG or PRGF list. */
+type ListState =
+  | { status: 'loading' }
+  /** A dashboard from before the lists: the app opens on the selected company, as it did. */
+  | { status: 'legacy' }
+  | { status: 'failed'; failure: Failure }
+  | { status: 'loaded'; companies: ListedCompany[]; selected: ListedCompany }
+
+/** "CSG", "PRGF": the lists a company is on, as small labels on its card. */
+const LIST_LABELS = { csg: 'CSG', prgf: 'PRGF' } as const
+const tagsOf = (company: HomeCompany & Partial<Pick<ListedCompany, 'lists'>>) => (company.lists ?? []).map((list) => LIST_LABELS[list])
 
 /** Several companies at once: where their runs come from, and which companies may be chosen. */
 interface Batch {
@@ -165,6 +179,40 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
   const [overview, setOverview] = useState<OverviewState>({ status: 'loading' })
   const [overviewReload, setOverviewReload] = useState(0)
   const isAdmin = companies.status === 'loaded' && companies.isAdmin
+  // Your companies (the main page) or the selected company's own screen.
+  const [list, setList] = useState<ListState>({ status: 'loading' })
+  const [listReload, setListReload] = useState(0)
+  const [view, setView] = useState<'home' | 'company'>('home')
+  const [opening, setOpening] = useState<string | null>(null)
+  const [homeFailure, setHomeFailure] = useState<Failure | null>(null)
+
+  useEffect(() => {
+    if (!embedded || !connected) return
+    let current = true
+    // Read again on the way back to Your companies: quietly, keeping what is shown.
+    setList((now) => (now.status === 'loaded' ? now : { status: 'loading' }))
+    void loadCompanyList(port).then((answer) => {
+      if (!current) return
+      if (answer.ok) {
+        setList({ status: 'loaded', companies: answer.companies, selected: answer.selected })
+        // Right after a card was tapped (the dashboard then reloaded this app): straight to it.
+        if (answer.open) {
+          if (answer.open.period) setPeriod(answer.open.period)
+          setView('company')
+        }
+        return
+      }
+      if (answer.legacy) {
+        setList({ status: 'legacy' })
+        setView('company')
+        return
+      }
+      setList({ status: 'failed', failure: answer.failure })
+    })
+    return () => {
+      current = false
+    }
+  }, [embedded, connected, port, listReload])
 
   useEffect(() => {
     if (!embedded || !connected) return
@@ -351,8 +399,71 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
     </section>
   )
 
-  if (!(connected && companies.status === 'loaded' && companies.isAdmin && hubStore && hubBatch)) return runCard
+  if (view === 'home' && list.status !== 'legacy') {
+    const loaded = list.status === 'loaded' ? list : null
+    const selectedBrn = loaded?.selected.brn ?? null
+    return (
+      <CompanyHome
+        companies={loaded ? loaded.companies.filter(isListed) : []}
+        loading={!connected || list.status === 'loading'}
+        canChoose={loaded ? loaded.companies.some((one) => one.admin) : false}
+        months={months}
+        period={period}
+        onPeriod={(next) => {
+          setPeriod(next)
+          setFetched({ status: 'idle' })
+        }}
+        opening={opening}
+        tags={tagsOf}
+        failure={list.status === 'failed' ? list.failure : homeFailure}
+        onRetry={list.status === 'failed' ? () => setListReload((n) => n + 1) : undefined}
+        onChoose={() => {
+          if (!selectedBrn) return
+          setHomeFailure(null)
+          void openPicker(port, selectedBrn).then(setHomeFailure)
+        }}
+        onOpen={(company) => {
+          if (!selectedBrn) return
+          setHomeFailure(null)
+          setOpening(company.company_id)
+          void openCompany(port, selectedBrn, company.company_id, period).then((answer) => {
+            // Switched: the dashboard reloads this app, which then opens that company.
+            if (answer.ok && answer.switched) return
+            setOpening(null)
+            if (!answer.ok) return setHomeFailure(answer.failure)
+            setView('company')
+          })
+        }}
+      />
+    )
+  }
+
+  const back =
+    list.status === 'loaded' ? (
+      <BackBar
+        notListed={!isListed(list.selected)}
+        canAdd={list.selected.admin}
+        onBack={() => {
+          setView('home')
+          setListReload((n) => n + 1)
+        }}
+        onAdd={() => void openPicker(port, list.selected.brn).then(setHomeFailure)}
+      />
+    ) : null
+
+  if (!(connected && companies.status === 'loaded' && companies.isAdmin && hubStore && hubBatch)) {
+    return (
+      <>
+        {back}
+        {homeFailure && <FailurePanel failure={homeFailure} />}
+        {runCard}
+      </>
+    )
+  }
   return (
+    <>
+    {back}
+    {homeFailure && <FailurePanel failure={homeFailure} />}
     <Workspace
       store={hubStore}
       company={{ name: companies.selectedName, brn: companies.selectedBrn }}
@@ -360,7 +471,7 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
       filesPart={runCard}
       batch={{
         source: hubBatch,
-        companies: companies.companies,
+        companies: onTheList(companies.companies, list, companies.selectedBrn),
         months,
         initialPeriod: lastMonth(),
         openProfile: (brn) => openProfile(port, companies.selectedBrn, brn),
@@ -369,6 +480,43 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
       period={period}
       onRefreshOverview={() => setOverviewReload((n) => n + 1)}
     />
+    </>
+  )
+}
+
+/**
+ * The companies several files can be made for: the ones on this app's list, and the one
+ * selected in the dashboard. With a dashboard from before the lists, or while the list is not
+ * known, every company as before.
+ */
+export function onTheList<T extends { brn: string }>(companies: readonly T[], list: ListState, selectedBrn: string): T[] {
+  if (list.status !== 'loaded') return [...companies]
+  const listed = new Set(list.companies.filter(isListed).map((one) => normaliseBrn(one.brn)))
+  return companies.filter((one) => listed.has(normaliseBrn(one.brn)) || normaliseBrn(one.brn) === normaliseBrn(selectedBrn))
+}
+
+/** Back to Your companies; and a small label when the selected company is not on the list. */
+function BackBar({ notListed, canAdd, onBack, onAdd }: { notListed: boolean; canAdd: boolean; onBack: () => void; onAdd: () => void }) {
+  return (
+    <div className="back-bar">
+      <button type="button" className="btn btn-sm btn-ghost" onClick={onBack}>
+        <ArrowLeft aria-hidden="true" />
+        Your companies
+      </button>
+      {notListed && (
+        <>
+          <span className="badge tone-warn" data-testid="not-listed">
+            Not on the list
+          </span>
+          {canAdd && (
+            <button type="button" className="btn btn-sm btn-ghost" onClick={onAdd}>
+              <Plus aria-hidden="true" />
+              Add
+            </button>
+          )}
+        </>
+      )}
+    </div>
   )
 }
 

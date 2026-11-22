@@ -40,6 +40,11 @@ const DASHBOARD = `<!doctype html><meta charset="utf-8"><title>Fake dashboard (t
     if (type !== 'request-data' && type !== 'send-data') return
     const answer = window.hub.handle(type, payload)
     if (answer !== undefined) post(type === 'send-data' ? 'received' : 'response-data', answer, id)
+    // Another company was selected (company-list open-company): the dashboard reloads the app.
+    if (window.hub.state.reload) {
+      window.hub.state.reload = false
+      setTimeout(() => { frame.src = frame.getAttribute('src') }, 50)
+    }
   })
 </script>`
 

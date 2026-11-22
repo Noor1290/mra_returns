@@ -139,6 +139,35 @@ try {
   await record('dashboard: several companies, report', frameOf(batched))
   await batched.page.close()
 
+  // Your companies: the main page (company-list), its cards, and with no company chosen yet.
+  const home = await openEmbedded(embedded.context, (hub) => {
+    hub.state.openOnStart = false
+  })
+  await home.app.getByRole('button', { name: /ABC Co Ltd/ }).waitFor()
+  await record('dashboard: your companies', frameOf(home))
+  await home.page.close()
+  const none = await openEmbedded(embedded.context, (hub) => {
+    hub.state.openOnStart = false
+    hub.state.lists = {}
+  })
+  await none.app.getByTestId('no-companies').waitFor()
+  await record('dashboard: no companies chosen', frameOf(none))
+  await none.page.close()
+  const noneMember = await openEmbedded(embedded.context, (hub) => {
+    hub.state.openOnStart = false
+    hub.state.lists = {}
+    for (const one of hub.state.companies) one.role = 'member'
+  })
+  await noneMember.app.getByText('An admin can choose them.').waitFor()
+  await record('dashboard: no companies chosen, not an admin', frameOf(noneMember))
+  await noneMember.page.close()
+  const offList = await openEmbedded(embedded.context, (hub) => {
+    hub.state.lists = { C3333333: ['csg'] }
+  })
+  await offList.app.getByTestId('not-listed').waitFor()
+  await record('dashboard: not on the list', frameOf(offList))
+  await offList.page.close()
+
   const member = await openEmbedded(embedded.context, (hub) => {
     hub.state.selected = 'C2222222'
   })

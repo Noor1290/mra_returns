@@ -26,6 +26,18 @@ export interface FakeHubState {
   templates: FakeTemplate[]
   saves: Record<string, unknown>[]
   templateRequests: Record<string, unknown>[]
+  /** company-list: the CSG and PRGF lists each company is on, by BRN, and each company's id. */
+  lists: Record<string, ('csg' | 'prgf')[]>
+  ids: Record<string, string>
+  /** The first answer marks the selected company `open` (the app goes straight to it). */
+  openOnStart: boolean
+  /** A dashboard from before the lists. */
+  legacy: boolean
+  pendingOpen: { brn: string; period: string | null } | null
+  /** Set when the dashboard would reload the app's frame. */
+  reload: boolean
+  pickerOpened: number
+  listRequests: Record<string, unknown>[]
 }
 export interface FakeTemplate {
   template_id: string

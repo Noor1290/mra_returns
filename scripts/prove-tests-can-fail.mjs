@@ -95,6 +95,12 @@ const changes = [
   ['A date typed with "-" or "." between is not read', 'src/lib/formats.ts', "match = /^(\\d{1,2})([/.-])(\\d{1,2})\\2(\\d{4})$/.exec(value)", "match = /^(\\d{1,2})(\\/)(\\d{1,2})\\2(\\d{4})$/.exec(value)"],
   ['A value that cannot be read is not listed before the download', 'src/lib/report.ts', 'unreadable: groups(({ file, employees }) => unreadableLines(file, employees)),', 'unreadable: [],'],
   ['A value that cannot be read does not stop the download', 'src/lib/report.ts', ' + checks.unreadable.length > 0', ' > 0'],
+  // Company lists (company-list, the dashboard's migration 0024).
+  ['A dashboard from before the lists is taken for a failure', 'src/lib/companyList.ts', "answer.failure.kind === 'no-answer' && /not registered/i.test(answer.failure.hubError ?? '')", 'false'],
+  ['The company opened from its card is not opened after the reload', 'src/lib/companyList.ts', 'open: one.open ? { period: one.open_period ?? null } : null', 'open: null'],
+  ['The month of the card is lost after the reload', 'src/lib/companyList.ts', '{ period: one.open_period ?? null }', '{ period: null }'],
+  ['Several companies at once offers companies that are not on the list', 'src/screens/ReturnsScreen.tsx', 'listed.has(normaliseBrn(one.brn)) || ', 'true || '],
+  ['A company circle gets another colour than in the dashboard', 'src/lib/companyLook.ts', '[162, 200, 230, 262, 300, 340, 30, 75]', '[200, 162, 230, 262, 300, 340, 30, 75]'],
 ]
 
 function runTests() {

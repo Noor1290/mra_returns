@@ -1239,6 +1239,38 @@
     {
       "text": "text: July 2026 has not been sent to the dashboard. Open Payroll System, choose July 2026 and use Send to dashboard.",
       "why": "approved by the owner 3 Nov 2026 (field lists, ready-made templates); seen on: dashboard: month not sent"
+    },
+    {
+      "text": "text: Your companies",
+      "why": "approved in principle by the owner 22 Nov 2026 (company lists M1/M5: main page title, and the way back to it); shown in context in the Stage 2 report"
+    },
+    {
+      "text": "aria-label: Your companies",
+      "why": "approved in principle by the owner 22 Nov 2026 (company lists M1: the list of company cards); shown in context in the Stage 2 report"
+    },
+    {
+      "text": "text: Choose companies",
+      "why": "approved in principle by the owner 22 Nov 2026 (company lists M2); shown in context in the Stage 2 report"
+    },
+    {
+      "text": "text: CSG",
+      "why": "approved in principle by the owner 22 Nov 2026 (company lists the lists a company is on, on its card (as P9)); shown in context in the Stage 2 report"
+    },
+    {
+      "text": "text: PRGF",
+      "why": "approved in principle by the owner 22 Nov 2026 (company lists the lists a company is on, on its card (as P9)); shown in context in the Stage 2 report"
+    },
+    {
+      "text": "text: No companies yet",
+      "why": "approved in principle by the owner 22 Nov 2026 (company lists M3); shown in context in the Stage 2 report"
+    },
+    {
+      "text": "text: An admin can choose them.",
+      "why": "approved in principle by the owner 22 Nov 2026 (company lists M3, when you are not an admin); shown in context in the Stage 2 report"
+    },
+    {
+      "text": "text: Not on the list",
+      "why": "approved in principle by the owner 22 Nov 2026 (company lists M4); shown in context in the Stage 2 report"
     }
   ]
 }

@@ -221,6 +221,49 @@ try {
   await member.page.close()
   console.log('  a member: told only admins make returns, nothing asked')
 
+  // 7. Your companies (company-list): cards for the companies on the CSG or PRGF list only;
+  // a card opens its company in the month shown; back; the dashboard's picker.
+  const home = await openEmbedded(context, (hub) => {
+    hub.state.openOnStart = false
+  })
+  await home.app.getByTestId('company-home').waitFor()
+  await home.app.getByRole('button', { name: /ABC Co Ltd/ }).waitFor()
+  const cards = await home.app.getByRole('list', { name: 'Your companies' }).getByRole('button').allTextContents()
+  check(cards.length === 2 && cards[0].includes('ABC Co Ltd') && cards[1].includes('DEF Ltd'), `The cards are not the two companies on the list: ${JSON.stringify(cards)}`)
+  check((await home.page.evaluate(() => window.hub.state.asked.length)) === 0, 'Your companies: the dashboard asked its user something.')
+  for (const scheme of ['dark', 'light']) {
+    await home.page.emulateMedia({ colorScheme: scheme })
+    // Let the cards' colour transitions finish before measuring.
+    await home.page.waitForTimeout(500)
+    for (const html of await home.app.locator('body').evaluate(unnamedControls)) problems.push(`Your companies (${scheme}): control without a name: ${html}`)
+    for (const item of await home.app.locator('body').evaluate(lowContrast)) problems.push(`Your companies (${scheme}): low contrast ${item}`)
+  }
+  await home.page.emulateMedia({ colorScheme: 'dark' })
+  // The keyboard reaches the cards, with the 2px accent focus ring.
+  await home.app.getByRole('button', { name: /ABC Co Ltd/ }).focus()
+  await home.page.keyboard.press('Tab')
+  const ring = await home.app.locator('body').evaluate(() => {
+    const el = document.activeElement
+    const style = getComputedStyle(el)
+    return { text: el.textContent, outline: `${style.outlineWidth} ${style.outlineStyle}` }
+  })
+  check(ring.text.includes('DEF Ltd') && ring.outline === '2px solid', `The keyboard does not reach the next card with a 2px ring: ${JSON.stringify(ring)}`)
+  await shot(home.page, '7-your-companies')
+  await home.app.getByLabel('Month').selectOption({ label: 'July 2026' })
+  await home.app.getByRole('button', { name: /DEF Ltd/ }).click()
+  // The dashboard selects DEF Ltd and reloads the app, which goes straight to it, in July.
+  await home.app.getByTestId('company').filter({ hasText: 'DEF Ltd' }).waitFor()
+  check((await home.app.getByLabel('Month').first().inputValue()) === '2026-07', 'The month shown on Your companies was not kept when the card was opened.')
+  await home.app.getByRole('button', { name: 'Your companies' }).click()
+  await home.app.getByTestId('company-home').waitFor()
+  await home.app.getByRole('button', { name: 'Choose companies' }).click()
+  await home.page.waitForFunction(() => window.hub.state.pickerOpened === 1)
+  const homeStorage = await home.page.frames()[1].evaluate(() => localStorage.length + sessionStorage.length)
+  check(homeStorage === 0, 'Your companies wrote to browser storage.')
+  check(home.pageErrors.length === 0, `Errors on the page: ${home.pageErrors.join(' | ')}`)
+  await home.page.close()
+  console.log('  your companies: only the listed companies, a card opens its company in that month, back, the picker')
+
   check(outside.length === 0, `Requests to other addresses: ${outside.join(', ')}`)
   await context.close()
 } finally {

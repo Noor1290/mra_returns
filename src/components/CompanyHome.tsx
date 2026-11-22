@@ -1,4 +1,4 @@
-import { ChevronRight, LayoutGrid, LoaderCircle } from 'lucide-react'
+import { ChevronRight, LayoutGrid, LoaderCircle, Plus } from 'lucide-react'
 import { useId, type CSSProperties } from 'react'
 import { formatPeriod } from '../lib/dates'
 import type { Failure } from '../lib/hubWire'
@@ -32,6 +32,11 @@ export interface CompanyHomeProps {
   failure: Failure | null
   /** Reads the list again, when that is what failed. */
   onRetry?: () => void
+  /**
+   * The company selected in the dashboard when it is not on this app's list: one more card,
+   * first, marked "Not on the list". `onAdd` (admins only, else null) opens the picker.
+   */
+  extra?: { company: HomeCompany; onAdd: (() => void) | null } | null
 }
 
 /** The circle with the company's initials, in the same colour as in the dashboard. */
@@ -50,9 +55,42 @@ export function Avatar({ name, hueKey }: { name: string; hueKey: string }) {
 }
 
 /** "Your companies, November 2026": a card for each company on this app's list. */
-export function CompanyHome({ companies, loading, canChoose, months, period, onPeriod, opening, onOpen, onChoose, tags, failure, onRetry }: CompanyHomeProps) {
+export function CompanyHome({ companies, loading, canChoose, months, period, onPeriod, opening, onOpen, onChoose, tags, failure, onRetry, extra = null }: CompanyHomeProps) {
   const monthId = useId()
   const empty = !loading && companies.length === 0
+  function card(company: HomeCompany, labels: readonly string[], warn: boolean) {
+    const busy = opening === company.company_id
+    return (
+      <button
+        type="button"
+        className="company-card"
+        aria-busy={busy || undefined}
+        disabled={opening !== null && !busy}
+        onClick={() => onOpen(company)}
+      >
+        <Avatar name={company.name} hueKey={company.brn || company.company_id} />
+        <span className="company-text">
+          <span className="company-name" data-values>
+            {company.name}
+          </span>
+          <span className="company-brn" data-values>
+            {company.brn}
+          </span>
+          {labels.length > 0 && (
+            <span className="company-tags">
+              {labels.map((label) => (
+                <span key={label} className={warn ? 'company-tag warn' : 'company-tag'}>
+                  {label}
+                </span>
+              ))}
+            </span>
+          )}
+        </span>
+        {busy ? <LoaderCircle className="go spin" aria-hidden="true" /> : <ChevronRight className="go" aria-hidden="true" />}
+      </button>
+    )
+  }
+
   return (
     <section className="flex flex-col gap-5 rise-in" aria-labelledby="home-title" data-testid="company-home">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
@@ -105,43 +143,22 @@ export function CompanyHome({ companies, loading, canChoose, months, period, onP
         </div>
       )}
 
-      {!loading && companies.length > 0 && (
+      {!loading && (companies.length > 0 || extra) && (
         <ul className="company-grid" aria-label="Your companies">
-          {companies.map((company) => {
-            const busy = opening === company.company_id
-            const labels = tags?.(company) ?? []
-            return (
-              <li key={company.company_id}>
-                <button
-                  type="button"
-                  className="company-card"
-                  aria-busy={busy || undefined}
-                  disabled={opening !== null && !busy}
-                  onClick={() => onOpen(company)}
-                >
-                  <Avatar name={company.name} hueKey={company.brn || company.company_id} />
-                  <span className="company-text">
-                    <span className="company-name" data-values>
-                      {company.name}
-                    </span>
-                    <span className="company-brn" data-values>
-                      {company.brn}
-                    </span>
-                    {labels.length > 0 && (
-                      <span className="company-tags">
-                        {labels.map((label) => (
-                          <span key={label} className="company-tag">
-                            {label}
-                          </span>
-                        ))}
-                      </span>
-                    )}
-                  </span>
-                  {busy ? <LoaderCircle className="go spin" aria-hidden="true" /> : <ChevronRight className="go" aria-hidden="true" />}
+          {extra && (
+            <li key={extra.company.company_id} className="company-extra" data-testid="extra-card">
+              {card(extra.company, ['Not on the list'], true)}
+              {extra.onAdd && (
+                <button type="button" className="btn btn-sm btn-ghost company-add" onClick={extra.onAdd} disabled={opening !== null}>
+                  <Plus aria-hidden="true" />
+                  Add
                 </button>
-              </li>
-            )
-          })}
+              )}
+            </li>
+          )}
+          {companies.map((company) => (
+            <li key={company.company_id}>{card(company, tags?.(company) ?? [], false)}</li>
+          ))}
         </ul>
       )}
     </section>

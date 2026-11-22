@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createFakeHub } from '../scripts/lib/fake-hub.mjs'
-import { isListed, loadCompanyList, openCompany, openPicker } from '../src/lib/companyList'
+import { isListed, loadCompanyList, offTheList, openCompany, openPicker } from '../src/lib/companyList'
 import type { HubPort } from '../src/lib/hubWire'
 import { onTheList } from '../src/screens/ReturnsScreen'
 import { hueOf, initialsOf } from '../src/lib/companyLook'
@@ -41,6 +41,14 @@ describe('the companies of this app', () => {
     hub.state.refuseAll = { code: 'unavailable', error: 'The owner needs to run supabase/migrations/0024_company_lists_and_status.sql.' }
     const answer = await loadCompanyList(port)
     expect(answer).toMatchObject({ ok: false, legacy: false, failure: { kind: 'unavailable' } })
+  })
+})
+
+describe('the selected company, not on the list', () => {
+  it('is one more card on Your companies; a company on the list is not', () => {
+    const off = { brn: 'C1234567', lists: [] as ('csg' | 'prgf')[] }
+    expect(offTheList(off)).toBe(off)
+    expect(offTheList({ brn: 'C1234567', lists: ['prgf'] as ('csg' | 'prgf')[] })).toBeNull()
   })
 })
 

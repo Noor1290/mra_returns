@@ -100,6 +100,7 @@ const changes = [
   ['The company opened from its card is not opened after the reload', 'src/lib/companyList.ts', 'open: one.open ? { period: one.open_period ?? null } : null', 'open: null'],
   ['The month of the card is lost after the reload', 'src/lib/companyList.ts', '{ period: one.open_period ?? null }', '{ period: null }'],
   ['Several companies at once offers companies that are not on the list', 'src/screens/ReturnsScreen.tsx', 'listed.has(normaliseBrn(one.brn)) || ', 'true || '],
+  ['The selected company off the list is not one more card', 'src/lib/companyList.ts', '(isListed(selected) ? null : selected)', '(null as T | null)'],
   ['A company circle gets another colour than in the dashboard', 'src/lib/companyLook.ts', '[162, 200, 230, 262, 300, 340, 30, 75]', '[200, 162, 230, 262, 300, 340, 30, 75]'],
 ]
 

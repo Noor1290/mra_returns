@@ -817,3 +817,18 @@ input[type='checkbox'] {
     transform: rotate(360deg);
   }
 }
+
+/* The company selected in the dashboard, not on the list: one more card, marked. */
+.company-tag.warn {
+  border-color: color-mix(in srgb, var(--warn) 40%, transparent);
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
+  color: var(--warn);
+}
+.company-extra {
+  position: relative;
+}
+.company-extra .company-add {
+  position: absolute;
+  right: 40px;
+  bottom: 12px;
+}

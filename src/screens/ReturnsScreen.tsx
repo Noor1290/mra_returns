@@ -9,7 +9,7 @@ import { DEMO_OVERVIEW, DEMO_RUN } from '../data/demoRun'
 import type { BatchSource } from '../lib/batch'
 import { formatPeriod, lastMonth, recentMonths } from '../lib/dates'
 import { fieldLists, type OverviewState } from '../lib/fields'
-import { isListed, loadCompanyList, openCompany, openPicker, type ListedCompany } from '../lib/companyList'
+import { isListed, loadCompanyList, offTheList, openCompany, openPicker, type ListedCompany } from '../lib/companyList'
 import { failure, normaliseBrn, type Failure, type HubPort } from '../lib/hubWire'
 import { askForCompanies, hubBatchSource, listCompanies, loadOverview, loadRun, openProfile, type BatchCompany, type SavedRun } from '../lib/runStore'
 import { demoTemplateStore, hubTemplateStore, type TemplateStore } from '../lib/templateStore'
@@ -415,6 +415,19 @@ export function ReturnsScreen({ port, embedded, connected }: { port: HubPort; em
         }}
         opening={opening}
         tags={tagsOf}
+        extra={
+          loaded && offTheList(loaded.selected)
+            ? {
+                company: loaded.selected,
+                onAdd: loaded.selected.admin
+                  ? () => {
+                      setHomeFailure(null)
+                      void openPicker(port, loaded.selected.brn).then(setHomeFailure)
+                    }
+                  : null,
+              }
+            : null
+        }
         failure={list.status === 'failed' ? list.failure : homeFailure}
         onRetry={list.status === 'failed' ? () => setListReload((n) => n + 1) : undefined}
         onChoose={() => {

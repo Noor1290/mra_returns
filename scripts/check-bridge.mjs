@@ -264,6 +264,25 @@ try {
   await home.page.close()
   console.log('  your companies: only the listed companies, a card opens its company in that month, back, the picker')
 
+  // 7b. The company selected in the dashboard is not on the list: one more card, first, marked
+  // "Not on the list", that opens it; Add (admins) opens the picker.
+  const off = await openEmbedded(context, (hub) => {
+    hub.state.openOnStart = false
+    hub.state.lists = { C3333333: ['csg'] }
+  })
+  await off.app.getByTestId('extra-card').waitFor()
+  const offCards = await off.app.getByRole('list', { name: 'Your companies' }).locator('.company-card').allTextContents()
+  check(offCards.length === 2 && offCards[0].includes('ABC Co Ltd') && offCards[0].includes('Not on the list') && offCards[1].includes('DEF Ltd'), `The selected company is not the first card, marked Not on the list: ${JSON.stringify(offCards)}`)
+  for (const html of await off.app.locator('body').evaluate(unnamedControls)) problems.push(`Your companies, not on the list: control without a name: ${html}`)
+  for (const item of await off.app.locator('body').evaluate(lowContrast)) problems.push(`Your companies, not on the list: low contrast ${item}`)
+  await off.app.getByTestId('extra-card').getByRole('button', { name: 'Add' }).click()
+  await off.page.waitForFunction(() => window.hub.state.pickerOpened === 1)
+  await off.app.getByRole('button', { name: /ABC Co Ltd/ }).click()
+  await off.app.getByTestId('not-listed').waitFor()
+  check(off.pageErrors.length === 0, `Errors on the page: ${off.pageErrors.join(' | ')}`)
+  await off.page.close()
+  console.log('  your companies: the selected company off the list is one more card, marked, with Add')
+
   check(outside.length === 0, `Requests to other addresses: ${outside.join(', ')}`)
   await context.close()
 } finally {

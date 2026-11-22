@@ -41,6 +41,9 @@ export type CompanyList =
 /** Whether a company is on this app's page. */
 export const isListed = (company: Pick<ListedCompany, 'lists'>) => company.lists.length > 0
 
+/** The company selected in the dashboard when it is not on this app's list: one more card on Your companies. */
+export const offTheList = <T extends Pick<ListedCompany, 'lists'>>(selected: T): T | null => (isListed(selected) ? null : selected)
+
 /** Every company of the user with the CSG and PRGF lists it is on, the selected one marked. */
 export async function loadCompanyList(port: HubPort): Promise<CompanyList> {
   const answer = await ask(port, COMPANY_LIST, { action: 'companies' }, null, rowSchema, { maxRows: 500 })

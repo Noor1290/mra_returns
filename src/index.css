@@ -254,6 +254,14 @@ input[type='month']:focus-within {
   padding: 0 12px;
   font-size: 13px;
 }
+/* A long button wraps onto a second line instead of running out of its card (hotfix 4). */
+.btn-wrap {
+  height: auto;
+  min-height: 40px;
+  padding-block: 6px;
+  white-space: normal;
+  text-align: center;
+}
 .btn-primary {
   background: var(--accent);
   border-color: var(--accent);

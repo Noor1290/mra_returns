@@ -36,7 +36,7 @@ export function AddReadyMade({
       <div>
         <button
           type="button"
-          className="btn btn-primary"
+          className="btn btn-primary btn-wrap"
           disabled={busy || disabled}
           onClick={async () => {
             setBusy(true)

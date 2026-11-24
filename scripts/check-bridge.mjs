@@ -11,6 +11,7 @@ import { chromium } from 'playwright'
 import { lowContrast, unnamedControls } from './lib/a11y-page.mjs'
 import { embeddedContext, HUB, openEmbedded } from './lib/embedded.mjs'
 import { FAKE_CSG_UPLOAD } from './lib/fake-upload.mjs'
+import { buttonsOutside, WIDTHS } from './lib/overflow.mjs'
 
 const problems = []
 const check = (condition, text) => {
@@ -282,6 +283,35 @@ try {
   check(off.pageErrors.length === 0, `Errors on the page: ${off.pageErrors.join(' | ')}`)
   await off.page.close()
   console.log('  your companies: the selected company off the list is one more card, marked, with Add')
+
+  // Hotfix 4: at every width, no button lies outside its card, panel or dialog: the company screen,
+  // each of its tabs, and Your companies.
+  {
+    const fit = await openEmbedded(context)
+    await fit.app.getByTestId('company').first().waitFor()
+    const frame = fit.page.frames().find((found) => found.url().startsWith(`${HUB}/mra_returns/`))
+    const sweep = async (where) => {
+      for (const width of WIDTHS) {
+        await fit.page.setViewportSize({ width: width + 40, height: 900 })
+        await fit.page.evaluate((w) => (document.getElementById('app').style.width = `${w}px`), width)
+        await fit.page.waitForTimeout(150)
+        for (const line of await frame.evaluate(buttonsOutside)) problems.push(`${where}, ${width} px: ${line} lies outside its card or window.`)
+      }
+      await fit.page.evaluate(() => (document.getElementById('app').style.width = '1280px'))
+    }
+    await sweep('Company screen')
+    const tabs = fit.app.getByRole('tab')
+    for (let index = 0; index < (await tabs.count()); index++) {
+      const name = (await tabs.nth(index).textContent()).trim()
+      await tabs.nth(index).click()
+      await sweep(`Tab ${name}`)
+    }
+    await fit.app.getByRole('button', { name: 'Your companies' }).click()
+    await fit.app.getByTestId('company-home').waitFor()
+    await sweep('Your companies')
+    await fit.page.close()
+    console.log('  buttons: inside their card or window at every width')
+  }
 
   check(outside.length === 0, `Requests to other addresses: ${outside.join(', ')}`)
   await context.close()
